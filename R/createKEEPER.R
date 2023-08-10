@@ -426,8 +426,7 @@ createKEEPER <- function(connectionDetails = NULL,
 
   # KEEPER code
 
-pullDataSql <- SqlRender::readSql("inst/pullData.sql")
-
+pullDataSql <- SqlRender::readSql(system.file("sql/sql_server/pullData.sql", package = "KEEPER", mustWork = TRUE))
 
   writeLines("Getting patient data for KEEPER.")
    DatabaseConnector::renderTranslateExecuteSql(
