@@ -97,8 +97,7 @@
 #' )
 #' }
 #'
-
-# XXX add windows as parameters
+# 
 #' @export
 createKEEPER <- function(connectionDetails = NULL,
                                     connection = NULL,
@@ -129,14 +128,7 @@ createKEEPER <- function(connectionDetails = NULL,
 
 # checking parameters
 
-  #checkmate::assertLogical(
-  #  any.missing = FALSE,
-  #  len = 1,
-  #  min.len = 1,
-  #  null.ok = FALSE,
-  #  add = errorMessage
-  #)
-  #checkmate::reportAssertions(collection = errorMessage)
+  checkmate::reportAssertions(collection = errorMessage)
 
   checkmate::assertCharacter(
     x = cohortDatabaseSchema,
@@ -462,12 +454,12 @@ presentation = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
 
  subjects = presentation%>%
- dplyr::select(personId, age, gender)%>%
+ dplyr::select(personId, newId, age, gender)%>%
  dplyr::distinct()  
       
  presentation = presentation%>%
   dplyr::group_by(personId) %>% 
-  dplyr::summarise(presentation = stringr::str_c(presentation, collapse = ", ")) 
+  dplyr::summarise(presentation = stringr::str_c(conceptName, collapse = " ")) 
 
 
 visit_context = DatabaseConnector::renderTranslateQuerySql(
@@ -475,93 +467,90 @@ visit_context = DatabaseConnector::renderTranslateQuerySql(
       sql = "SELECT * FROM #visit_context;",
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
- visit_context = visit_context%>%
+visit_context = visit_context%>%
   dplyr::group_by(personId) %>% 
-  dplyr::summarise(visit_context = stringr::str_c(visit_context, collapse = ", ")) 
+  dplyr::summarise(visit_context = stringr::str_c(conceptName, collapse = " ")) 
 
 
-
-  prior_conditions = DatabaseConnector::renderTranslateQuerySql(
+prior_conditions = DatabaseConnector::renderTranslateQuerySql(
       connection = connection,
       sql = "SELECT * FROM #prior_conditions;",
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
- prior_conditions = prior_conditions%>%
-  dplyr::group_by(personId) %>% 
-  dplyr::summarise(prior_conditions = stringr::str_c(prior_conditions, collapse = ", ")) 
+prior_conditions = prior_conditions%>%
+  dplyr::group_by(cohortDefinitionId, personId) %>% 
+  dplyr::summarise(prior_conditions = stringr::str_c(conceptName, collapse = " ")) 
 
 
-  prior_drugs = DatabaseConnector::renderTranslateQuerySql(
+prior_drugs = DatabaseConnector::renderTranslateQuerySql(
       connection = connection,
       sql = "SELECT * FROM #prior_drugs;",
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
- prior_drugs = prior_drugs%>%
+prior_drugs = prior_drugs%>%
   dplyr::group_by(personId) %>% 
-  dplyr::summarise(prior_drugs = stringr::str_c(prior_drugs, collapse = ", ")) 
+  dplyr::summarise(prior_drugs = stringr::str_c(conceptName, collapse = " ")) 
 
-
-
-  diagnostic_procedures = DatabaseConnector::renderTranslateQuerySql(
+diagnostic_procedures = DatabaseConnector::renderTranslateQuerySql(
       connection = connection,
       sql = "SELECT * FROM #diagnostic_procedures;",
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
- diagnostic_procedures = diagnostic_procedures%>%
+diagnostic_procedures = diagnostic_procedures%>%
   dplyr::group_by(personId) %>% 
-  dplyr::summarise(diagnostic_procedures = stringr::str_c(diagnostic_procedures, collapse = ", ")) 
+  dplyr::summarise(diagnostic_procedures = stringr::str_c(conceptName, collapse = " ")) 
 
 
-
-  measurements = DatabaseConnector::renderTranslateQuerySql(
+measurements = DatabaseConnector::renderTranslateQuerySql(
       connection = connection,
       sql = "SELECT * FROM #measurements;",
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
- measurements = measurements%>%
+measurements = measurements%>%
   dplyr::group_by(personId) %>% 
-  dplyr::summarise(measurements = stringr::str_c(measurements, collapse = ", ")) 
+  dplyr::summarise(measurements = stringr::str_c(conceptName, collapse = " ")) 
 
 
-  alternative_diagnosis = DatabaseConnector::renderTranslateQuerySql(
+alternative_diagnosis = DatabaseConnector::renderTranslateQuerySql(
       connection = connection,
       sql = "SELECT * FROM #alternative_diagnosis;",
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
- alternative_diagnosis = alternative_diagnosis%>%
+alternative_diagnosis = alternative_diagnosis%>%
   dplyr::group_by(personId) %>% 
-  dplyr::summarise(alternative_diagnosis = stringr::str_c(alternative_diagnosis, collapse = ", ")) 
+  dplyr::summarise(alternative_diagnosis = stringr::str_c(conceptName, collapse = " ")) 
 
 
-  medication_treatment = DatabaseConnector::renderTranslateQuerySql(
+medication_treatment = DatabaseConnector::renderTranslateQuerySql(
       connection = connection,
       sql = "SELECT * FROM #medication_treatment;",
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
- medication_treatment = medication_treatment%>%
+medication_treatment = medication_treatment%>%
   dplyr::group_by(personId) %>% 
-  dplyr::summarise(medication_treatment = stringr::str_c(medication_treatment, collapse = ", ")) 
+  dplyr::summarise(medication_treatment = stringr::str_c(conceptName, collapse = " ")) 
 
 
-  treatment_procedures = DatabaseConnector::renderTranslateQuerySql(
+treatment_procedures = DatabaseConnector::renderTranslateQuerySql(
       connection = connection,
       sql = "SELECT * FROM #treatment_procedures;",
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
- treatment_procedures = treatment_procedures%>%
+treatment_procedures = treatment_procedures%>%
   dplyr::group_by(personId) %>% 
-  dplyr::summarise(treatment_procedures = stringr::str_c(treatment_procedures, collapse = ", ")) 
+  dplyr::summarise(treatment_procedures = stringr::str_c(conceptName, collapse = " ")) 
 
-  complications = DatabaseConnector::renderTranslateQuerySql(
+complications = DatabaseConnector::renderTranslateQuerySql(
       connection = connection,
       sql = "SELECT * FROM #complications;",
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
- complications = complications%>%
+complications = complications%>%
   dplyr::group_by(personId) %>% 
-  dplyr::summarise(complications = stringr::str_c(complications, collapse = ", ")) 
+  dplyr::summarise(complications = stringr::str_c(conceptName, collapse = " ")) 
 
   writeLines("Writing KEEPER file.")
+
 
 # XXXXX works weird with multiple strings in prior_conditions
   KEEPER = subjects%>%
@@ -575,15 +564,20 @@ visit_context = DatabaseConnector::renderTranslateQuerySql(
   dplyr::left_join(medication_treatment, by = "personId")%>%
   dplyr::left_join(treatment_procedures, by = "personId")%>%
   dplyr::left_join(complications, by = "personId")%>%
-  dplyr::select(personId, age, gender, presentation, prior_conditions, prior_drugs, diagnostic_procedures, measurements,
+  dplyr::select(personId, newId, age, gender, presentation, prior_conditions, prior_drugs, diagnostic_procedures, measurements,
          alternative_diagnosis, treatment_procedures, medication_treatment, complications)%>%
   dplyr::distinct()%>%
   # add columns for review
   tibble::add_column(reviewer = NA, status = NA, index_misspecification = NA, notes = NA)
   
   KEEPER <- replace(KEEPER, is.na(KEEPER), "")
+  KEEPER <- replaceId(data = KEEPER, useNewId = assignNewId)
   
+  #XXX
   KEEPER%>%
-  write.csv("KEEPER.csv")
+  write.csv(paste0("KEEPER_cohort_", cohortDefinitionId,".csv"), row.names=F)
+
+
+
 
 }
