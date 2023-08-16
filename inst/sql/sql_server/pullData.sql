@@ -31,7 +31,7 @@ with visits as (select distinct vo.person_id,
                                 cohort_definition_id
                 from #pts_cohort c
                     join @cdm_database_schema.visit_occurrence vo
-                on vo.person_id = c.subject_id and (visit_start_date = cohort_start_date or (visit_start_date<cohort_start_date and visit_end_date>cohort_start_date))
+                on vo.person_id = c.subject_id and visit_start_date <= cohort_start_date and cohort_start_date <= visit_end_date
                     join @cdm_database_schema.concept cc on cc.concept_id = vo.visit_concept_id and cc.concept_id!=0),
      visits2 as (select v.*,
                         case
