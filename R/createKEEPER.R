@@ -318,7 +318,7 @@ createKEEPER <- function(connectionDetails = NULL,
       progressBar = TRUE,
       bulkLoad = (Sys.getenv("bulkLoad") == TRUE),
       camelCaseToSnakeCase = TRUE,
-      data = dplyr::tibble(subjectId = as.double(personIds) |> unique())
+      data = dplyr::tibble(subjectId = as.double(personIds) %>% unique())
     )
 
     DatabaseConnector::renderTranslateExecuteSql(
