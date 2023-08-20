@@ -554,7 +554,7 @@ death = DatabaseConnector::renderTranslateQuerySql(
       
 death = death%>%
   dplyr::group_by(personId) %>% 
-  dplyr::summarise(complications = stringr::str_c(conceptName, collapse = " ")) 
+  dplyr::summarise(death = stringr::str_c(conceptName, collapse = " ")) 
 
 
   writeLines("Writing KEEPER file.")
