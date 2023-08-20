@@ -64,8 +64,9 @@
 #'
 #' @param Complications               KEEPER: input string for concept_ids for complications of the condition of interest within a year after the index date
 #'
-#' @param MeasValues                   KEEPER: a switch for displaying measurement values vs comparison to normal range
+#' @param MeasValues                  KEEPER: a switch for displaying measurement values vs comparison to normal range
 #'
+#' @param UseAncestor                 KEEPER: a switch for using concept_ancestor to retrieve relevant terms vs using verbatim strings of codes
 #'
 #' @examples
 #' \dontrun{
@@ -120,6 +121,7 @@ createKEEPER <- function(connectionDetails = NULL,
                                     databaseId,
                                     assignNewId = FALSE,
                                     #userCovariates = TRUE,
+                                    UseAncestor = TRUE,
                                     PriorDrugs,
                                     PriorConditions,
                                     DiagnosticProcedures,
@@ -422,6 +424,7 @@ pullDataSql <- SqlRender::readSql(system.file("sql/sql_server/pullData.sql", pac
     tempEmulationSchema = tempEmulationSchema,
     snakeCaseToCamelCase = TRUE,
     meas_values = MeasValues,
+    use_ancestor = UseAncestor,
     alternative_diagnosis = AlternativeDiagnosis,
     complications = Complications,
     diagnostic_procedures = DiagnosticProcedures,
@@ -543,9 +546,18 @@ complications = complications%>%
   dplyr::group_by(personId) %>% 
   dplyr::summarise(complications = stringr::str_c(conceptName, collapse = " ")) 
 
+
+death = DatabaseConnector::renderTranslateQuerySql(
+      connection = connection,
+      sql = "SELECT * FROM #death;",
+      snakeCaseToCamelCase = TRUE) %>% as_tibble()
+      
+death = death%>%
+  dplyr::group_by(personId) %>% 
+  dplyr::summarise(complications = stringr::str_c(conceptName, collapse = " ")) 
+
+
   writeLines("Writing KEEPER file.")
-
-
   KEEPER = subjects%>%
   dplyr::left_join(presentation, by = "personId")%>%
   dplyr::left_join(visit_context, by = "personId")%>%
@@ -557,8 +569,9 @@ complications = complications%>%
   dplyr::left_join(medication_treatment, by = "personId")%>%
   dplyr::left_join(treatment_procedures, by = "personId")%>%
   dplyr::left_join(complications, by = "personId")%>%
+  dplyr::left_join(death, by = "personId")%>%
   dplyr::select(personId, newId, age, gender, presentation, prior_conditions, prior_drugs, diagnostic_procedures, measurements,
-         alternative_diagnosis, treatment_procedures, medication_treatment, complications)%>%
+         alternative_diagnosis, treatment_procedures, medication_treatment, complications, death)%>%
   dplyr::distinct()%>%
   # add columns for review
   tibble::add_column(reviewer = NA, status = NA, index_misspecification = NA, notes = NA)
