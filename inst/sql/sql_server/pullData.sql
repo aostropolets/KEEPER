@@ -160,7 +160,7 @@ with meas as (
         when value_as_number > range_high then 'abnormal, high'
         when value_as_number < range_low then 'abnormal, low'
         else 'normal' end, ', day ', datediff(day, cohort_start_date, measurement_date), ');') as concept_name}
-        : {concat(cc.concept_name, ' (', value_as_number, cc2.concept_name, ', day ', datediff(day, cohort_start_date, measurement_date), ');') as concept_name }, datediff(day, cohort_start_date, measurement_date) as date_order
+        : {concat(cc.concept_name, ' (', value_as_number, ' ', cc2.concept_name, ', day ', datediff(day, cohort_start_date, measurement_date), ');') as concept_name }, datediff(day, cohort_start_date, measurement_date) as date_order
     from #pts_cohort c
         join @cdm_database_schema.measurement m
     on m.person_id = subject_id
