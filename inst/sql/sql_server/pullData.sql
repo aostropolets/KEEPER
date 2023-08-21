@@ -20,7 +20,7 @@ with presentation as (select distinct p.person_id, c.new_id,
 select person_id, new_id, age, gender, day_0, concept_name, cohort_definition_id
 into #presentation
 from presentation
-order by presentation asc
+order by concept_name asc
 ;
 
 -- visits overlapping with the day 0
