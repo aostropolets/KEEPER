@@ -576,7 +576,7 @@ death = death%>%
   # add columns for review
   tibble::add_column(reviewer = NA, status = NA, index_misspecification = NA, notes = NA)
   
-  KEEPER <- replace(KEEPER, is.na(KEEPER), "")
+ # KEEPER <- replace(KEEPER, is.na(KEEPER), "") #temp remove
   KEEPER <- replaceId(data = KEEPER, useNewId = assignNewId)
   
   #XXX
