@@ -581,7 +581,7 @@ death = death%>%
   
   #XXX
   KEEPER%>%
-  write.csv(paste0("KEEPER_cohort_", cohortDefinitionId,".csv"), row.names=F)
+  write.csv(paste0("KEEPER_cohort_", databaseId, "_", cohortDefinitionId,".csv"), row.names=F)
 
 
 
