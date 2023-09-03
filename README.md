@@ -18,9 +18,29 @@ Features
 How to use
 ==========
 
-- Go the output location in your file browser (e.g. windows file explorer in a Windows computer) and start 'KEEPER.Rproj'.
-- In R console now run renv::restore() to enable renv. This will download all required packages and dependencies and set up the run environment. 
-- run createKEEPER() with approapriate parameters (see an example in R/createKEEPER.R) to create a csv file with patient profiles
+1. Go the output location in your file browser (e.g. windows file explorer in a Windows computer) and start 'KEEPER.Rproj'.
+2. In R console now run renv::restore() to enable renv. This will download all required packages and dependencies and set up the run environment. 
+3. Run createKEEPER() with approapriate parameters (see an example in R/createKEEPER.R) to create a csv file with patient profiles. You will need the following input:
+
+- instatiated cohort with patients of interest in COHORT table or in another table that has the same fields as COHORT
+- xxx
+
+
+*note: if no suitable concept_ids exists for an input string, input c(0)
+
+Example xxx
+
+
+Output
+==========
+
+Output contains the following information per patient:
+
+- demographics (age, gender),
+- visit_context: information about visits overlapping with the index date (day 0),
+- presentation: all records in CONDITION_OCCURRENCE on day 0 with corrresponding type and status,
+xxx
+
 
 Technology
 ==========
