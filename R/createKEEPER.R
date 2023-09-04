@@ -441,7 +441,7 @@ pullDataSql <- SqlRender::readSql(system.file("sql/sql_server/pullData.sql", pac
      ) 
 
 # XXX consider loop for future
-#list = c(presentation, visit_context, prior_conditions, prior_drugs, diagnostic_procedures, measurements, alternative_diagnosis, medication_treatment, treatment_procedures, complications)
+#list = c(presentation, visit_context, prior_conditions, prior_drugs, diagnostic_procedures, measurements, alternative_diagnosis, medication_treatment, treatment_procedures, death)
 
 #for (val in list){
 ##allfour <- lapply(setNames(paste("select * from", list),
@@ -577,16 +577,6 @@ after_treatment_procedures = DatabaseConnector::renderTranslateQuerySql(
 after_treatment_procedures = after_treatment_procedures%>%
   dplyr::group_by(personId) %>% 
   dplyr::summarise(after_treatment_procedures = stringr::str_c(conceptName, collapse = " ")) 
-
-
-complications = DatabaseConnector::renderTranslateQuerySql(
-      connection = connection,
-      sql = "SELECT * FROM #complications;",
-      snakeCaseToCamelCase = TRUE) %>% as_tibble()
-      
-complications = complications%>%
-  dplyr::group_by(personId) %>% 
-  dplyr::summarise(complications = stringr::str_c(conceptName, collapse = " ")) 
 
 
 death = DatabaseConnector::renderTranslateQuerySql(
