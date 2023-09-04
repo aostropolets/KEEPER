@@ -459,12 +459,9 @@ presentation = DatabaseConnector::renderTranslateQuerySql(
       sql = "SELECT * FROM #presentation;",
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
 
-write.csv(presentation, "pr.csv")
-
  subjects = presentation%>%
  dplyr::select(personId, newId, age, gender, cohortDefinitionId, cohortStartDate, observationPeriod)%>%
- dplyr::rename(observation_period = observationPeriod)%>%
- dplyr::distinct()  
+ dplyr::rename(observation_period = observationPeriod)
       
  presentation = presentation%>%
   dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
