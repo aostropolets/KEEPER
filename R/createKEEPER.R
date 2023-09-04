@@ -574,7 +574,7 @@ after_treatment_procedures = DatabaseConnector::renderTranslateQuerySql(
       sql = "SELECT * FROM #after_treatment_procedures;",
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
-after_treatment_procedures = prior_treatment_procedures%>%
+after_treatment_procedures = after_treatment_procedures%>%
   dplyr::group_by(personId) %>% 
   dplyr::summarise(after_treatment_procedures = stringr::str_c(conceptName, collapse = " ")) 
 
