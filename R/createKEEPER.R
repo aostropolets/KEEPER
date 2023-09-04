@@ -614,8 +614,8 @@ death = death%>%
   dplyr::left_join(after_drugs, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
   dplyr::left_join(after_treatment_procedures, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
   dplyr::left_join(death, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
-  dplyr::select(personId, newId, age, gender, observation_period, visit_context, presentation, symptoms, prior_disease, prior_drugs, prior_treatment_procedures,
-                diagnostic_procedures, measurements, alternative_diagnosis, after_disease, after_treatment_procedures, after_drugs, death)%>%
+  dplyr::select(personId, newId, age, gender, observationPeriod, visitContext, presentation, symptoms, priorDisease, priorDrugs, priorTreatmentProcedures,
+                diagnosticProcedures, measurements, alternativeDiagnosis, afterDisease, afterTreatmentProcedures, afterDrugs, death)%>%
   dplyr::distinct()%>%
   # add columns for review
   tibble::add_column(reviewer = NA, status = NA, index_misspecification = NA, notes = NA)
