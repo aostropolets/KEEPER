@@ -463,7 +463,7 @@ write.csv(presentation, "pr.csv")
 
  subjects = presentation%>%
  dplyr::select(personId, newId, age, gender, cohortDefinitionId, cohortStartDate, observationPeriod)%>%
- dplyr::rename(observation_period = observationPeriod)
+ dplyr::rename(observation_period = observationPeriod)%>%
  dplyr::distinct()  
       
  presentation = presentation%>%
@@ -600,6 +600,7 @@ death = death%>%
 # creating a joint dataframe
 # keeping cohort_definition_id to support lists in future
   writeLines("Writing KEEPER file.")
+
   KEEPER = subjects%>%
   dplyr::left_join(presentation, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
   dplyr::left_join(visit_context, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
