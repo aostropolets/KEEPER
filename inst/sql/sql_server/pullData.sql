@@ -20,7 +20,7 @@ with presentation as (select distinct p.person_id, c.new_id,
                       on p.person_id= c.subject_id
                           join @cdm_database_schema.condition_occurrence co on co.person_id = p.person_id and cohort_start_date = condition_start_date
                           join @cdm_database_schema.concept cc on cc.concept_id = co.condition_concept_id and cc.concept_id!=0
-                          left join @cdm_database_schema.concept cc2 on cc2.concept_id = co.condition_type_concept_id and cc2.concept_id!=0)
+                          left join @cdm_database_schema.concept cc2 on cc2.concept_id = co.condition_type_concept_id and cc2.concept_id!=0
                           left join @cdm_database_schema.concept cc3 on cc3.concept_id = co.condition_status_concept_id and cc3.concept_id!=0)
 select person_id, new_id, age, gender, day_0, concept_name, cohort_definition_id
 into #presentation
