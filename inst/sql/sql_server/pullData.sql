@@ -430,6 +430,7 @@ order by date_order asc;
 --death  
 with death as (select distinct person_id,
                                        cohort_definition_id,
+                                       cohort_start_date,
                                        concat(concept_name, ' (day ',
                                               datediff(day, cohort_start_date, death_date),
                                               ');')                                               as concept_name
