@@ -462,7 +462,7 @@ presentation = DatabaseConnector::renderTranslateQuerySql(
 write.csv(presentation, "pr.csv")
 
  subjects = presentation%>%
- dplyr::select(personId, newId, age, gender, observationPeriod, cohortStartDate)%>%
+ dplyr::select(personId, newId, age, gender, cohortStartDate, observationPeriod )%>%
  dplyr::distinct()  
       
  presentation = presentation%>%
