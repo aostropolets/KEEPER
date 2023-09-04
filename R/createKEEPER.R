@@ -466,7 +466,7 @@ write.csv(presentation, "pr.csv")
  dplyr::distinct()  
       
  presentation = presentation%>%
-  dplyr::group_by(personId) %>% 
+  dplyr::group_by(personId, cohortStartDate) %>% 
   dplyr::summarise(presentation = stringr::str_c(conceptName, collapse = " ")) 
 
 
@@ -476,7 +476,7 @@ visit_context = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
 visit_context = visit_context%>%
-  dplyr::group_by(personId) %>% 
+  dplyr::group_by(personId, cohortStartDate) %>% 
   dplyr::summarise(visit_context = stringr::str_c(conceptName, collapse = " ")) 
 
 symptoms = DatabaseConnector::renderTranslateQuerySql(
@@ -523,7 +523,7 @@ prior_drugs = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
 prior_drugs = prior_drugs%>%
-  dplyr::group_by(personId) %>% 
+  dplyr::group_by(personId, cohortStartDate) %>% 
   dplyr::summarise(prior_drugs = stringr::str_c(conceptName, collapse = " ")) 
 
 
@@ -533,7 +533,7 @@ after_drugs = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
 after_drugs = after_drugs%>%
-  dplyr::group_by(personId) %>% 
+  dplyr::group_by(personId, cohortStartDate) %>% 
   dplyr::summarise(after_drugs = stringr::str_c(conceptName, collapse = " ")) 
 
 
@@ -543,7 +543,7 @@ diagnostic_procedures = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
 diagnostic_procedures = diagnostic_procedures%>%
-  dplyr::group_by(personId) %>% 
+  dplyr::group_by(personId, cohortStartDate) %>% 
   dplyr::summarise(diagnostic_procedures = stringr::str_c(conceptName, collapse = " ")) 
 
 
@@ -553,7 +553,7 @@ measurements = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
 measurements = measurements%>%
-  dplyr::group_by(personId) %>% 
+  dplyr::group_by(personId, cohortStartDate) %>% 
   dplyr::summarise(measurements = stringr::str_c(conceptName, collapse = " ")) 
 
 
@@ -563,7 +563,7 @@ alternative_diagnosis = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
 alternative_diagnosis = alternative_diagnosis%>%
-  dplyr::group_by(personId) %>% 
+  dplyr::group_by(personId, cohortStartDate) %>% 
   dplyr::summarise(alternative_diagnosis = stringr::str_c(conceptName, collapse = " ")) 
 
 prior_treatment_procedures = DatabaseConnector::renderTranslateQuerySql(
@@ -572,7 +572,7 @@ prior_treatment_procedures = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
 prior_treatment_procedures = prior_treatment_procedures%>%
-  dplyr::group_by(personId) %>% 
+  dplyr::group_by(personId, cohortStartDate) %>% 
   dplyr::summarise(prior_treatment_procedures = stringr::str_c(conceptName, collapse = " ")) 
 
 after_treatment_procedures = DatabaseConnector::renderTranslateQuerySql(
@@ -581,7 +581,7 @@ after_treatment_procedures = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
 after_treatment_procedures = after_treatment_procedures%>%
-  dplyr::group_by(personId) %>% 
+  dplyr::group_by(personId, cohortStartDate) %>% 
   dplyr::summarise(after_treatment_procedures = stringr::str_c(conceptName, collapse = " ")) 
 
 
@@ -591,7 +591,7 @@ death = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
 death = death%>%
-  dplyr::group_by(personId) %>% 
+  dplyr::group_by(personId, cohortStartDate) %>% 
   dplyr::summarise(death = stringr::str_c(conceptName, collapse = " ")) 
 
 
