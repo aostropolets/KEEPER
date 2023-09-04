@@ -222,6 +222,7 @@ select person_id, cohort_definition_id, concept_name
 into #after_drugs
 from drugs
 order by date_order asc
+;
 
 -- treatment procedures prior [-9999,0)
 with treatment as (select distinct person_id,
