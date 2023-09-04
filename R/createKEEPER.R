@@ -424,7 +424,7 @@ createKEEPER <- function(connectionDetails = NULL,
 #YYYY
  cohort2 <- DatabaseConnector::renderTranslateQuerySql(
       connection = connection,
-      sql = "SELECT count * FROM #pts_cohort;")
+      sql = "SELECT  * FROM #pts_cohort;")
 write.csv(cohort2, "initital.csv")
 
 # KEEPER code
