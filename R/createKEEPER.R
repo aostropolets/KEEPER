@@ -459,6 +459,8 @@ presentation = DatabaseConnector::renderTranslateQuerySql(
       sql = "SELECT * FROM #presentation;",
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
 
+return (presentation)
+
  subjects = presentation%>%
  dplyr::select(personId, newId, age, gender, observationPeriod, cohortStartDate)%>%
  dplyr::distinct()  
