@@ -81,14 +81,18 @@
 #'   password = "secure"
 #' )
 #'
-#' XXX: to do: test for personIds, add windows as parameters, format as loop, check ranges for measurements, add support for cdi as list
+#' XXX: to do: test for personIds, add windows as parameters, format as loop, check ranges for measurements, fix NA, fix length of CSV string, add support for cdi as list
+#' XXX: consider: adding a * for primary status
 #' createKEEPER(
 #'   connectionDetails = connectionDetails,
+#'   exportFolder = "c:/temp/keeper",
+#'   databaseId = "Synpuf",
+#'   cdmDatabaseSchema = "dbo",
+#'   cohortDatabaseSchema = "results",
+#'   cohortTable = "cohort",
 #'   cohortDefinitionId = 1234,
 #'   cohortName = "DM type I",
 #'   sampleSize = 100,
-#'   exportFolder = "c:/temp/keeper",
-#'   databaseId = "Synpuf",
 #'   assignNewId = TRUE,
 #'   measValues = TRUE,
 #'   useAncestor = TRUE,
@@ -456,7 +460,7 @@ presentation = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
 
  subjects = presentation%>%
- dplyr::select(personId, newId, age, gender)%>%
+ dplyr::select(personId, newId, age, gender, observationPeriod, cohortStartDate)%>%
  dplyr::distinct()  
       
  presentation = presentation%>%
@@ -592,21 +596,21 @@ death = death%>%
 # creating a joint dataframe
   writeLines("Writing KEEPER file.")
   KEEPER = subjects%>%
-  dplyr::left_join(presentation, by = "personId")%>%
-  dplyr::left_join(visit_context, by = "personId")%>%
-  dplyr::left_join(comorbidities, by = "personId")%>%
-  dplyr::left_join(symptoms, by = "personId")%>%
-  dplyr::left_join(prior_disease, by = "personId")%>%
-  dplyr::left_join(prior_drugs, by = "personId")%>%
-  dplyr::left_join(prior_treatment_procedures, by = "personId")%>%
-  dplyr::left_join(diagnostic_procedures, by = "personId")%>%
-  dplyr::left_join(measurements, by = "personId")%>%
-  dplyr::left_join(alternative_diagnosis, by = "personId")%>%
-  dplyr::left_join(after_disease, by = "personId")%>%
-  dplyr::left_join(after_drugs, by = "personId")%>%
-  dplyr::left_join(after_treatment_procedures, by = "personId")%>%
-  dplyr::left_join(death, by = "personId")%>%
-  dplyr::select(personId, newId, age, gender, visit_context, presentation, symptoms, prior_disease, prior_drugs, prior_treatment_procedures,
+  dplyr::left_join(presentation, by = c("personId", "cohortStartDate"))%>%
+  dplyr::left_join(visit_context, by = c("personId", "cohortStartDate"))%>%
+  dplyr::left_join(comorbidities, by = c("personId", "cohortStartDate"))%>%
+  dplyr::left_join(symptoms, by = c("personId", "cohortStartDate"))%>%
+  dplyr::left_join(prior_disease, by = c("personId", "cohortStartDate"))%>%
+  dplyr::left_join(prior_drugs, by = c("personId", "cohortStartDate"))%>%
+  dplyr::left_join(prior_treatment_procedures, by = c("personId", "cohortStartDate"))%>%
+  dplyr::left_join(diagnostic_procedures, by = c("personId", "cohortStartDate"))%>%
+  dplyr::left_join(measurements, by = c("personId", "cohortStartDate"))%>%
+  dplyr::left_join(alternative_diagnosis, by = c("personId", "cohortStartDate"))%>%
+  dplyr::left_join(after_disease, by = c("personId", "cohortStartDate"))%>%
+  dplyr::left_join(after_drugs, by = c("personId", "cohortStartDate"))%>%
+  dplyr::left_join(after_treatment_procedures, by = c("personId", "cohortStartDate"))%>%
+  dplyr::left_join(death, by = c("personId", "cohortStartDate"))%>%
+  dplyr::select(personId, newId, age, gender, observation_period, visit_context, presentation, symptoms, prior_disease, prior_drugs, prior_treatment_procedures,
                 diagnostic_procedures, measurements, alternative_diagnosis, after_disease, after_treatment_procedures, after_drugs, death)%>%
   dplyr::distinct()%>%
   # add columns for review
