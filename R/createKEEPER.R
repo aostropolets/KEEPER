@@ -421,6 +421,12 @@ createKEEPER <- function(connectionDetails = NULL,
     return(NULL)
   }
 
+#YYYY
+ cohort2 <- DatabaseConnector::renderTranslateQuerySql(
+      connection = connection,
+      sql = "SELECT count * FROM #pts_cohort;")
+write.csv(cohort2, "initital.csv")
+
 # KEEPER code
 pullDataSql <- SqlRender::readSql(system.file("sql/sql_server/pullData.sql", package = "KEEPER", mustWork = TRUE))
 
@@ -593,6 +599,8 @@ death = death%>%
   dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
   dplyr::summarise(death = stringr::str_c(conceptName, collapse = " ")) 
 
+#YYYY
+write.csv(presentation, "present.csv")
 
 # creating a joint dataframe
 # keeping cohort_definition_id to support lists in future
