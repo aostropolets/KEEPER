@@ -7,7 +7,7 @@ with presentation as (select distinct p.person_id, c.new_id,
                                       case when gender_concept_id = 8507 then 'Male' else 'Female' end as gender,
                                       cohort_start_date,
                                       concat(datediff(day, cohort_start_date, observation_period_start_date), ' days - ', 
-                                            datediff(day, cohort_start_date, observation_period_end_date), ' days') as observation_period
+                                            datediff(day, cohort_start_date, observation_period_end_date), ' days') as observation_period,
                                       case
                                           when cc2.concept_name is not null and cc3.concept_name is not null
                                               then concat(cc.concept_name, ' (', cc2.concept_name, ', ', cc3.concept_name, ');')
