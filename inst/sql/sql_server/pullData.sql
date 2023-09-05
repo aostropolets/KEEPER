@@ -356,11 +356,14 @@ with meas as (
     select person_id,
            cohort_definition_id, 
            cohort_start_date,
-           {!@meas_values} ? {concat(cc.concept_name, ' (', case
-        when value_as_number > range_high then 'abnormal, high'
-        when value_as_number < range_low then 'abnormal, low'
-        else 'normal' end, ', day ', datediff(day, cohort_start_date, measurement_date), ');') as concept_name}
-        : {concat(cc.concept_name, ' (', value_as_number, ' ', cc2.concept_name, ', day ', datediff(day, cohort_start_date, measurement_date), ');') as concept_name }, datediff(day, cohort_start_date, measurement_date) as date_order
+           case when range_high is not null and range_low is not null then
+                concat(cc.concept_name, ' (', value_as_number, ' ', cc2.concept_name, ', ',
+                        case when value_as_number > range_high then 'abnormal - high'
+                             when value_as_number < range_low then 'abnormal - low'
+                             else 'normal' end, ', day ', datediff(day, cohort_start_date, measurement_date), ');')
+                else concat(cc.concept_name, ' (', value_as_number, ' ', cc2.concept_name, ', day ', 
+                            datediff(day, cohort_start_date, measurement_date), ');') end as concept_name, 
+           datediff(day, cohort_start_date, measurement_date) as date_order 
     from #pts_cohort c
         join @cdm_database_schema.measurement m
     on m.person_id = subject_id
