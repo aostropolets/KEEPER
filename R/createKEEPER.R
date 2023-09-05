@@ -613,7 +613,7 @@ death = death%>%
                 diagnostic_procedures, measurements, alternative_diagnosis, after_disease, after_treatment_procedures, after_drugs, death)%>%
   dplyr::distinct()%>%
   # add columns for review
-  tibble::add_column(reviewer = NA, status = NA, index_misspecification = NA, notes = NA)
+  #tibble::add_column(reviewer = NA, status = NA, index_misspecification = NA, notes = NA)
 
   KEEPER <- replaceId(data = KEEPER, useNewId = assignNewId)
   
