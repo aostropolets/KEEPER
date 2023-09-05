@@ -67,8 +67,6 @@
 #'
 #' @param complications               KEEPER: input string for concept_ids for complications of the disease of interest within a year after the index date
 #'
-#' @param measValues                  KEEPER: a switch for displaying measurement values vs comparison to normal range
-#'
 #' @param useAncestor                 KEEPER: a switch for using concept_ancestor to retrieve relevant terms vs using verbatim strings of codes
 #'
 #' @examples
@@ -94,7 +92,6 @@
 #'   cohortName = "DM type I",
 #'   sampleSize = 100,
 #'   assignNewId = TRUE,
-#'   measValues = TRUE,
 #'   useAncestor = TRUE,
 #'   doi = c(201820,442793,443238,4016045,4065354,45757392, 4051114, 433968, 375545, 29555009, 4209145, 4034964, 380834, 4299544, 4226354, 4159742, 43530690, 433736,
 #'                     320128, 4170226, 40443308, 441267, 4163735, 192963, 85828009),
@@ -136,7 +133,6 @@ createKEEPER <- function(connectionDetails = NULL,
                                     alternativeDiagnosis,
                                     drugs,
                                     diagnosticProcedures,
-                                    measValues = TRUE,
                                     measurements,
                                     treatmentProcedures,
                                     complications
@@ -421,11 +417,6 @@ createKEEPER <- function(connectionDetails = NULL,
     return(NULL)
   }
 
-#YYYY
- cohort2 <- DatabaseConnector::renderTranslateQuerySql(
-      connection = connection,
-      sql = "SELECT  * FROM #pts_cohort;")
-write.csv(cohort2, "initital.csv")
 
 # KEEPER code
 pullDataSql <- SqlRender::readSql(system.file("sql/sql_server/pullData.sql", package = "KEEPER", mustWork = TRUE))
@@ -437,7 +428,6 @@ pullDataSql <- SqlRender::readSql(system.file("sql/sql_server/pullData.sql", pac
     cdm_database_schema = cdmDatabaseSchema,
     tempEmulationSchema = tempEmulationSchema,
     snakeCaseToCamelCase = TRUE,
-    meas_values = measValues,
     use_ancestor = useAncestor,
     doi = doi,
     symptoms = symptoms,
@@ -599,8 +589,6 @@ death = death%>%
   dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
   dplyr::summarise(death = stringr::str_c(conceptName, collapse = " ")) 
 
-#YYYY
-write.csv(presentation, "present.csv")
 
 # creating a joint dataframe
 # keeping cohort_definition_id to support lists in future
@@ -626,11 +614,11 @@ write.csv(presentation, "present.csv")
   dplyr::distinct()%>%
   # add columns for review
   tibble::add_column(reviewer = NA, status = NA, index_misspecification = NA, notes = NA)
-  
-  KEEPER <- replace(KEEPER, is.na(KEEPER), "") # temp remove
+
   KEEPER <- replaceId(data = KEEPER, useNewId = assignNewId)
   
   KEEPER%>%
+  replace(is.na(KEEPER), "") %>%
   write.csv(paste0("KEEPER_cohort_", databaseId, "_", cohortDefinitionId,".csv"), row.names=F)
 
 
