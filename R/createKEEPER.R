@@ -589,11 +589,11 @@ death = death%>%
   dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
   dplyr::summarise(death = stringr::str_c(conceptName, collapse = " ")) 
 
-
 # creating a joint dataframe
 # keeping cohort_definition_id to support lists in future
   writeLines("Writing KEEPER file.")
 
+  writeLines("Writing KEEPER file.")
   KEEPER = subjects%>%
   dplyr::left_join(presentation, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
   dplyr::left_join(visit_context, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
@@ -619,9 +619,8 @@ death = death%>%
   
   KEEPER%>%
   replace(is.na(KEEPER), "") %>%
+
   write.csv(paste0("KEEPER_cohort_", databaseId, "_", cohortDefinitionId,".csv"), row.names=F)
-
-
 
 
 }

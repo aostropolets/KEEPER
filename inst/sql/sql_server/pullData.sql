@@ -213,8 +213,7 @@ with drugs as (select distinct person_id,
                    and datediff(day, cohort_start_date, drug_era_start_date)<0
                    --and datediff(day, drug_era_start_date, cohort_start_date)<=365
                    join @cdm_database_schema.concept cc on cc.concept_id = drug_concept_id and cc.concept_id!=0
-               where cc.concept_id in (@drugs)
-               
+               where cc.concept_id in (@drugs)      
                )
 select person_id, cohort_definition_id, cohort_start_date, concept_name
 into #prior_drugs
@@ -350,6 +349,7 @@ order by date_order asc
 ;
 
 
+
 -- measurements around day 0 [-30;+30].
 with meas as (
 -- value_as_number
@@ -427,8 +427,6 @@ select person_id,
 into #measurements
 from meas c
 order by date_order asc;
-
-
 
 --death  
 with death as (select distinct person_id,
