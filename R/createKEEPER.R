@@ -48,25 +48,26 @@
 #'
 #' @param userCovariates              (KEEPER: for future: turn recommendations for KEEPER on and off)
 #'
-#' @param PriorDrugs                  KEEPER: input string for concept_ids for prior drug exposures relevant to the condition of interest within a year prior to the index date
+#' @param drugs                       KEEPER: input string for concept_ids for drug exposures relevant to the disease of interest, to be used for prior exposures and treatment after the index date. 
+#'                                    You may input drugs that are used to treat disease of interest and drugs used to treat alternative diagnosis
 #'
-#' @param PriorConditions             KEEPER: input string for concept_ids for prior conditions relevant to the condition of interest within a year prior to the index date
+#' @param doi                         KEEPER: input string for concept_ids for disease of interest
 #'
-#' @param DiagnosticProcedures        KEEPER: input string for concept_ids for diagnostic procedures relevant to the condition of interest within a month prior and after the index date
+#' @param comorbidities               KEEPER: input string for concept_ids for co-morbidities associated with the disease of interest (such as smoking or hypelipidemia for diabetes)
 #'
-#' @param Measurements	              KEEPER: input string for concept_ids for lab tests relevant to the condition of interest within a month prior and after the index date
+#' @param symptoms                    KEEPER: input string for concept_ids for symptoms associated with the disease of interest (such as weight gain or loss for diabetes)
 #'
-#' @param AlternativeDiagnosis        KEEPER: input string for concept_ids for competing diagnosis within a month after the index date
+#' @param diagnosticProcedures        KEEPER: input string for concept_ids for diagnostic procedures relevant to the condition of interest within a month prior and after the index date
 #'
-#' @param TreatmentProcedures	        KEEPER: input string for concept_ids for treatment procedures relevant to the condition of interest within a month after the index date
+#' @param measurements	              KEEPER: input string for concept_ids for lab tests relevant to the disease of interest within a month prior and after the index date
 #'
-#' @param MedicationTreatment         KEEPER: input string for concept_ids for treatment medications relevant to the condition of interest within a month after the index date
+#' @param alternativeDiagnosis        KEEPER: input string for concept_ids for competing diagnosis within a month after the index date
 #'
-#' @param Complications               KEEPER: input string for concept_ids for complications of the condition of interest within a year after the index date
+#' @param treatmentProcedures	        KEEPER: input string for concept_ids for treatment procedures relevant to the disease of interest within a month after the index date
 #'
-#' @param MeasValues                  KEEPER: a switch for displaying measurement values vs comparison to normal range
+#' @param complications               KEEPER: input string for concept_ids for complications of the disease of interest within a year after the index date
 #'
-#' @param UseAncestor                 KEEPER: a switch for using concept_ancestor to retrieve relevant terms vs using verbatim strings of codes
+#' @param useAncestor                 KEEPER: a switch for using concept_ancestor to retrieve relevant terms vs using verbatim strings of codes
 #'
 #' @examples
 #' \dontrun{
@@ -78,29 +79,32 @@
 #'   password = "secure"
 #' )
 #'
-#' XXX: to do: test for personIds, add windows as parameters, format as loop, check ranges for measurements, add support for cdi as list
+#' XXX: to do: test for personIds, add windows as parameters, format as loop, check ranges for measurements, fix NA, fix length of CSV string, add support for cdi as list
+#' XXX: consider: adding a * for primary status
 #' createKEEPER(
 #'   connectionDetails = connectionDetails,
+#'   exportFolder = "c:/temp/keeper",
+#'   databaseId = "Synpuf",
+#'   cdmDatabaseSchema = "dbo",
+#'   cohortDatabaseSchema = "results",
+#'   cohortTable = "cohort",
 #'   cohortDefinitionId = 1234,
 #'   cohortName = "DM type I",
 #'   sampleSize = 100,
-#'   exportFolder = "c:/temp/keeper",
-#'   databaseId = "Synpuf",
 #'   assignNewId = TRUE,
-#'   measValues = TRUE,
-#'   UseAncestor = TRUE,
-#'   PriorConditions = c(201820,442793,443238,4016045,4065354,45757392, 4051114, 433968, 375545, 29555009, 4209145, 4034964, 380834, 4299544, 4226354, 4159742, 43530690, 433736,
+#'   useAncestor = TRUE,
+#'   doi = c(201820,442793,443238,4016045,4065354,45757392, 4051114, 433968, 375545, 29555009, 4209145, 4034964, 380834, 4299544, 4226354, 4159742, 43530690, 433736,
 #'                     320128, 4170226, 40443308, 441267, 4163735, 192963, 85828009),
-#'   PriorDrugs = c(1730370, 21604490, 21601682, 21601855, 21601462, 21600280, 21602728, 1366773, 21602689, 21603923, 21603746),
-#'   DiagnosticProcedures = c(40756884, 4143852, 2746768, 2746766),
-#'   Measurements	= c(3034962, 3000483, 3034962, 3000483, 3004501, 3033408, 3005131, 3024629, 3031266, 3037110, 3009261, 3022548, 3019210, 3025232, 3033819,
+#'   symptoms = c(4232487, 4229881),
+#'   comorbidities = c(432867, 436670),
+#'   drugs = c(1730370, 21604490, 21601682, 21601855, 21601462, 21600280, 21602728, 1366773, 21602689, 21603923, 21603746),
+#'   diagnosticProcedures = c(40756884, 4143852, 2746768, 2746766),
+#'   measurements	= c(3034962, 3000483, 3034962, 3000483, 3004501, 3033408, 3005131, 3024629, 3031266, 3037110, 3009261, 3022548, 3019210, 3025232, 3033819,
 #'                  3000845, 3002666, 3004077, 3026300, 3014737, 3027198, 3025398, 3010300, 3020399, 3007332, 3025673, 3027457, 3010084, 3004410, 3005673),
-#'   AlternativeDiagnosis = c(201820,442793,443238,4016045,4065354,45757392, 4051114, 433968, 375545, 29555009, 4209145, 4034964, 380834, 4299544, 4226354, 4159742, 43530690, 433736,
+#'   alternativeDiagnosis = c(201820,442793,443238,4016045,4065354,45757392, 4051114, 433968, 375545, 29555009, 4209145, 4034964, 380834, 4299544, 4226354, 4159742, 43530690, 433736,
 #'                          320128, 4170226, 40443308, 441267, 4163735, 192963, 85828009),
-#'   TreatmentProcedures = c(40756884, 4143852, 2746768, 2746766),
-#'   MedicationTreatment = c(741530, 42873378, 45774489, 1502809,1502826,1503297,1510202, 1515249,1516766,1525215,1529331,1530014,1547504,
-#'                          1559684,1560171,1580747,1583722,1594973,1597756,19067100,1502905,1513876,1516976,1517998,1531601,1544838,1550023, 1567198,19122121,21600713),
-#'   Complications =  c(201820,442793,443238,4016045,4065354,45757392, 4051114, 433968, 375545, 29555009, 4209145, 4034964,
+#'   treatmentProcedures = c(0),
+#'   complications =  c(201820,442793,443238,4016045,4065354,45757392, 4051114, 433968, 375545, 29555009, 4209145, 4034964,
 #'                       380834, 4299544, 4226354, 4159742, 43530690, 433736, 320128, 4170226, 40443308, 441267, 4163735, 192963, 85828009)                             
 #' )
 #' }
@@ -122,16 +126,16 @@ createKEEPER <- function(connectionDetails = NULL,
                                     databaseId,
                                     assignNewId = FALSE,
                                     #userCovariates = TRUE,
-                                    UseAncestor = TRUE,
-                                    PriorDrugs,
-                                    PriorConditions,
-                                    DiagnosticProcedures,
-                                    MeasValues = TRUE,
-                                    Measurements,
-                                    AlternativeDiagnosis,
-                                    TreatmentProcedures,
-                                    MedicationTreatment,
-                                    Complications
+                                    useAncestor = TRUE,
+                                    doi, 
+                                    comorbidities,
+                                    symptoms,
+                                    alternativeDiagnosis,
+                                    drugs,
+                                    diagnosticProcedures,
+                                    measurements,
+                                    treatmentProcedures,
+                                    complications
                                     ) {
   errorMessage <- checkmate::makeAssertCollection()
 
@@ -413,8 +417,8 @@ createKEEPER <- function(connectionDetails = NULL,
     return(NULL)
   }
 
-  # KEEPER code
 
+# KEEPER code
 pullDataSql <- SqlRender::readSql(system.file("sql/sql_server/pullData.sql", package = "KEEPER", mustWork = TRUE))
 
   writeLines("Getting patient data for KEEPER.")
@@ -424,20 +428,20 @@ pullDataSql <- SqlRender::readSql(system.file("sql/sql_server/pullData.sql", pac
     cdm_database_schema = cdmDatabaseSchema,
     tempEmulationSchema = tempEmulationSchema,
     snakeCaseToCamelCase = TRUE,
-    meas_values = MeasValues,
-    use_ancestor = UseAncestor,
-    alternative_diagnosis = AlternativeDiagnosis,
-    complications = Complications,
-    diagnostic_procedures = DiagnosticProcedures,
-    measurements = Measurements,
-    medication_treatment = MedicationTreatment,
-    prior_conditions = PriorConditions,
-    prior_drugs = PriorDrugs,
-    treatment_procedures = TreatmentProcedures
-  ) 
+    use_ancestor = useAncestor,
+    doi = doi,
+    symptoms = symptoms,
+    comorbidities = comorbidities,
+    alternative_diagnosis = alternativeDiagnosis,
+    complications = complications,
+    diagnostic_procedures = diagnosticProcedures,
+    treatment_procedures = treatmentProcedures,
+    measurements = measurements,
+    drugs = drugs
+     ) 
 
 # XXX consider loop for future
-#list = c(presentation, visit_context, prior_conditions, prior_drugs, diagnostic_procedures, measurements, alternative_diagnosis, medication_treatment, treatment_procedures, complications)
+#list = c(presentation, visit_context, prior_conditions, prior_drugs, diagnostic_procedures, measurements, alternative_diagnosis, medication_treatment, treatment_procedures, death)
 
 #for (val in list){
 ##allfour <- lapply(setNames(paste("select * from", list),
@@ -452,11 +456,11 @@ presentation = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
 
  subjects = presentation%>%
- dplyr::select(personId, newId, age, gender)%>%
- dplyr::distinct()  
+ dplyr::select(personId, newId, age, gender, cohortDefinitionId, cohortStartDate, observationPeriod)%>%
+ dplyr::rename(observation_period = observationPeriod)
       
  presentation = presentation%>%
-  dplyr::group_by(personId) %>% 
+  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
   dplyr::summarise(presentation = stringr::str_c(conceptName, collapse = " ")) 
 
 
@@ -466,18 +470,45 @@ visit_context = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
 visit_context = visit_context%>%
-  dplyr::group_by(personId) %>% 
+  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
   dplyr::summarise(visit_context = stringr::str_c(conceptName, collapse = " ")) 
 
-
-prior_conditions = DatabaseConnector::renderTranslateQuerySql(
+symptoms = DatabaseConnector::renderTranslateQuerySql(
       connection = connection,
-      sql = "SELECT * FROM #prior_conditions;",
+      sql = "SELECT * FROM #symptoms;",
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
-prior_conditions = prior_conditions%>%
-  dplyr::group_by(cohortDefinitionId, personId) %>% 
-  dplyr::summarise(prior_conditions = stringr::str_c(conceptName, collapse = " ")) 
+symptoms = symptoms%>%
+  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
+  dplyr::summarise(symptoms = stringr::str_c(conceptName, collapse = " ")) 
+
+comorbidities = DatabaseConnector::renderTranslateQuerySql(
+      connection = connection,
+      sql = "SELECT * FROM #comorbidities;",
+      snakeCaseToCamelCase = TRUE) %>% as_tibble()
+      
+comorbidities = comorbidities%>%
+  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
+  dplyr::summarise(comorbidities = stringr::str_c(conceptName, collapse = " ")) 
+
+prior_disease = DatabaseConnector::renderTranslateQuerySql(
+      connection = connection,
+      sql = "SELECT * FROM #prior_disease;",
+      snakeCaseToCamelCase = TRUE) %>% as_tibble()
+      
+prior_disease = prior_disease%>%
+  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
+  dplyr::summarise(prior_disease = stringr::str_c(conceptName, collapse = " ")) 
+
+
+after_disease = DatabaseConnector::renderTranslateQuerySql(
+      connection = connection,
+      sql = "SELECT * FROM #after_disease;",
+      snakeCaseToCamelCase = TRUE) %>% as_tibble()
+      
+after_disease = after_disease%>%
+  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
+  dplyr::summarise(after_disease = stringr::str_c(conceptName, collapse = " ")) 
 
 
 prior_drugs = DatabaseConnector::renderTranslateQuerySql(
@@ -486,8 +517,19 @@ prior_drugs = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
 prior_drugs = prior_drugs%>%
-  dplyr::group_by(personId) %>% 
+  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
   dplyr::summarise(prior_drugs = stringr::str_c(conceptName, collapse = " ")) 
+
+
+after_drugs = DatabaseConnector::renderTranslateQuerySql(
+      connection = connection,
+      sql = "SELECT * FROM #after_drugs;",
+      snakeCaseToCamelCase = TRUE) %>% as_tibble()
+      
+after_drugs = after_drugs%>%
+  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
+  dplyr::summarise(after_drugs = stringr::str_c(conceptName, collapse = " ")) 
+
 
 diagnostic_procedures = DatabaseConnector::renderTranslateQuerySql(
       connection = connection,
@@ -495,7 +537,7 @@ diagnostic_procedures = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
 diagnostic_procedures = diagnostic_procedures%>%
-  dplyr::group_by(personId) %>% 
+  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
   dplyr::summarise(diagnostic_procedures = stringr::str_c(conceptName, collapse = " ")) 
 
 
@@ -505,7 +547,7 @@ measurements = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
 measurements = measurements%>%
-  dplyr::group_by(personId) %>% 
+  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
   dplyr::summarise(measurements = stringr::str_c(conceptName, collapse = " ")) 
 
 
@@ -515,38 +557,28 @@ alternative_diagnosis = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
 alternative_diagnosis = alternative_diagnosis%>%
-  dplyr::group_by(personId) %>% 
+  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
   dplyr::summarise(alternative_diagnosis = stringr::str_c(conceptName, collapse = " ")) 
 
 
-medication_treatment = DatabaseConnector::renderTranslateQuerySql(
+prior_treatment_procedures = DatabaseConnector::renderTranslateQuerySql(
       connection = connection,
-      sql = "SELECT * FROM #medication_treatment;",
+      sql = "SELECT * FROM #prior_treatment_procedures;",
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
-medication_treatment = medication_treatment%>%
-  dplyr::group_by(personId) %>% 
-  dplyr::summarise(medication_treatment = stringr::str_c(conceptName, collapse = " ")) 
+prior_treatment_procedures = prior_treatment_procedures%>%
+  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
+  dplyr::summarise(prior_treatment_procedures = stringr::str_c(conceptName, collapse = " ")) 
 
 
-treatment_procedures = DatabaseConnector::renderTranslateQuerySql(
+after_treatment_procedures = DatabaseConnector::renderTranslateQuerySql(
       connection = connection,
-      sql = "SELECT * FROM #treatment_procedures;",
+      sql = "SELECT * FROM #after_treatment_procedures;",
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
-treatment_procedures = treatment_procedures%>%
-  dplyr::group_by(personId) %>% 
-  dplyr::summarise(treatment_procedures = stringr::str_c(conceptName, collapse = " ")) 
-
-complications = DatabaseConnector::renderTranslateQuerySql(
-      connection = connection,
-      sql = "SELECT * FROM #complications;",
-      snakeCaseToCamelCase = TRUE) %>% as_tibble()
-      
-complications = complications%>%
-  dplyr::group_by(personId) %>% 
-  dplyr::summarise(complications = stringr::str_c(conceptName, collapse = " ")) 
-
+after_treatment_procedures = after_treatment_procedures%>%
+  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
+  dplyr::summarise(after_treatment_procedures = stringr::str_c(conceptName, collapse = " ")) 
 
 death = DatabaseConnector::renderTranslateQuerySql(
       connection = connection,
@@ -554,37 +586,41 @@ death = DatabaseConnector::renderTranslateQuerySql(
       snakeCaseToCamelCase = TRUE) %>% as_tibble()
       
 death = death%>%
-  dplyr::group_by(personId) %>% 
+  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
   dplyr::summarise(death = stringr::str_c(conceptName, collapse = " ")) 
 
+# creating a joint dataframe
+# keeping cohort_definition_id to support lists in future
+  writeLines("Writing KEEPER file.")
 
   writeLines("Writing KEEPER file.")
   KEEPER = subjects%>%
-  dplyr::left_join(presentation, by = "personId")%>%
-  dplyr::left_join(visit_context, by = "personId")%>%
-  dplyr::left_join(prior_conditions, by = "personId")%>%
-  dplyr::left_join(prior_drugs, by = "personId")%>%
-  dplyr::left_join(diagnostic_procedures, by = "personId")%>%
-  dplyr::left_join(measurements, by = "personId")%>%
-  dplyr::left_join(alternative_diagnosis, by = "personId")%>%
-  dplyr::left_join(medication_treatment, by = "personId")%>%
-  dplyr::left_join(treatment_procedures, by = "personId")%>%
-  dplyr::left_join(complications, by = "personId")%>%
-  dplyr::left_join(death, by = "personId")%>%
-  dplyr::select(personId, newId, age, gender, presentation, prior_conditions, prior_drugs, diagnostic_procedures, measurements,
-         alternative_diagnosis, treatment_procedures, medication_treatment, complications, death)%>%
-  dplyr::distinct()%>%
+  dplyr::left_join(presentation, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
+  dplyr::left_join(visit_context, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
+  dplyr::left_join(comorbidities, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
+  dplyr::left_join(symptoms, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
+  dplyr::left_join(prior_disease, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
+  dplyr::left_join(prior_drugs, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
+  dplyr::left_join(prior_treatment_procedures, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
+  dplyr::left_join(diagnostic_procedures, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
+  dplyr::left_join(measurements, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
+  dplyr::left_join(alternative_diagnosis, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
+  dplyr::left_join(after_disease, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
+  dplyr::left_join(after_drugs, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
+  dplyr::left_join(after_treatment_procedures, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
+  dplyr::left_join(death, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
+  dplyr::select(personId, newId, age, gender, observation_period, visit_context, presentation, symptoms, prior_disease, prior_drugs, prior_treatment_procedures,
+                diagnostic_procedures, measurements, alternative_diagnosis, after_disease, after_treatment_procedures, after_drugs, death)%>%
+  dplyr::distinct()
   # add columns for review
-  tibble::add_column(reviewer = NA, status = NA, index_misspecification = NA, notes = NA)
-  
- # KEEPER <- replace(KEEPER, is.na(KEEPER), "") #temp remove
+  #tibble::add_column(reviewer = NA, status = NA, index_misspecification = NA, notes = NA)
+
   KEEPER <- replaceId(data = KEEPER, useNewId = assignNewId)
   
-  #XXX
   KEEPER%>%
+  replace(is.na(KEEPER), "") %>%
+
   write.csv(paste0("KEEPER_cohort_", databaseId, "_", cohortDefinitionId,".csv"), row.names=F)
-
-
 
 
 }
