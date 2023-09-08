@@ -480,7 +480,6 @@ symptoms = DatabaseConnector::renderTranslateQuerySql(
       
 symptoms = symptoms%>%
   dplyr::group_by(cohortDefinitionId, personId, cohortStartDate, conceptName) %>% 
-  dplyr::summarise(comorbidities = stringr::str_c(conceptName, collapse = " "))%>%
   dplyr::summarise(dateComb = toString(sort(unique(dateOrder))))%>%
   dplyr::ungroup()%>%
   dplyr::distinct()%>%
@@ -496,7 +495,6 @@ comorbidities = DatabaseConnector::renderTranslateQuerySql(
       
 comorbidities = comorbidities%>%
   dplyr::group_by(cohortDefinitionId, personId, cohortStartDate, conceptName) %>% 
-  dplyr::summarise(comorbidities = stringr::str_c(conceptName, collapse = " "))%>%
   dplyr::summarise(dateComb = toString(sort(unique(dateOrder))))%>%
   dplyr::ungroup()%>%
   dplyr::distinct()%>%
@@ -562,7 +560,6 @@ diagnostic_procedures = DatabaseConnector::renderTranslateQuerySql(
       
 diagnostic_procedures = diagnostic_procedures%>%
   dplyr::group_by(cohortDefinitionId, personId, cohortStartDate, conceptName) %>% 
-  dplyr::summarise(comorbidities = stringr::str_c(conceptName, collapse = " "))%>%
   dplyr::summarise(dateComb = toString(sort(unique(dateOrder))))%>%
   dplyr::ungroup()%>%
   dplyr::distinct()%>%
@@ -603,7 +600,6 @@ prior_treatment_procedures = DatabaseConnector::renderTranslateQuerySql(
       
 prior_treatment_procedures = prior_treatment_procedures%>%
   dplyr::group_by(cohortDefinitionId, personId, cohortStartDate, conceptName) %>% 
-  dplyr::summarise(comorbidities = stringr::str_c(conceptName, collapse = " "))%>%
   dplyr::summarise(dateComb = toString(sort(unique(dateOrder))))%>%
   dplyr::ungroup()%>%
   dplyr::distinct()%>%
@@ -619,7 +615,6 @@ after_treatment_procedures = DatabaseConnector::renderTranslateQuerySql(
       
 after_treatment_procedures = after_treatment_procedures%>%
   dplyr::group_by(cohortDefinitionId, personId, cohortStartDate, conceptName) %>% 
-  dplyr::summarise(comorbidities = stringr::str_c(conceptName, collapse = " "))%>%
   dplyr::summarise(dateComb = toString(sort(unique(dateOrder))))%>%
   dplyr::ungroup()%>%
   dplyr::distinct()%>%
