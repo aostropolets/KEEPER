@@ -589,10 +589,30 @@ death = death%>%
   dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
   dplyr::summarise(death = stringr::str_c(conceptName, collapse = " ")) 
 
+
+temp = DatabaseConnector::renderTranslateQuerySql(
+      connection = connection,
+      sql = "SELECT * FROM #temp;",
+      snakeCaseToCamelCase = TRUE) %>% as_tibble()
+
+temp2 = temp %>%
+    group_by(cohortDefinitionId, personId, cohortStartDate, conceptName) %>%
+    summarise(name = toString(sort(unique(dateOrder))))%>%
+    ungroup()%>%
+    distinct()%>%
+    mutate(dateName = paste(conceptName, " _ ", name, sep = ""))
+
+temp3 = temp2%>%
+  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
+  dplyr::summarise(dateName2 = stringr::str_c(dateName, collapse = "; ")) 
+
+write.csv(temp, "temp.csv")
+write.csv(temp2, "temp2.csv")
+write.csv(temp3, "temp3.csv")
+
+
 # creating a joint dataframe
 # keeping cohort_definition_id to support lists in future
-  writeLines("Writing KEEPER file.")
-
   writeLines("Writing KEEPER file.")
   KEEPER = subjects%>%
   dplyr::left_join(presentation, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%

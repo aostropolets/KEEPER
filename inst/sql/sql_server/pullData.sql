@@ -93,6 +93,33 @@ from conditions
 order by date_order asc
 ;
 
+with conditions as (select distinct person_id,
+                                    cohort_definition_id,
+                                    cohort_start_date,
+                                    concept_name,
+                                    datediff(day, cohort_start_date, condition_era_start_date) as date_order
+
+                    from #pts_cohort c
+                        join @cdm_database_schema.condition_era co
+                    on co.person_id = c.subject_id
+                        and datediff(day, cohort_start_date, condition_era_start_date)<0
+                        {@use_ancestor} ? 
+                        {join @cdm_database_schema.concept_ancestor ca on descendant_concept_id = condition_concept_id
+                         and ancestor_concept_id in (@comorbidities) and ancestor_concept_id not in (@symptoms)
+                         and ancestor_concept_id not in (@doi) and ancestor_concept_id not in (@complications)
+                         join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id}
+                        :{join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id and cc.concept_id!=0
+                           and cc.concept_id in (@comorbidities) and cc.concept_id not in (@symptoms)
+                            and cc.concept_id not in (@doi) and cc.concept_id not in (@complications)
+                           }
+                           )
+select person_id, cohort_definition_id, cohort_start_date, concept_name, date_order
+into #temp
+from conditions
+order by date_order asc
+;
+
+
 -- prior symptoms within a prior month [-30,0)
 with symptoms as (select distinct person_id,
                                        cohort_definition_id,
