@@ -67,9 +67,7 @@ where a.rn = 1;
 with conditions as (select distinct person_id,
                                     cohort_definition_id,
                                     cohort_start_date,
-                                    concat(concept_name, ' (day ',
-                                           datediff(day, cohort_start_date, condition_era_start_date),
-                                           ');')                                               as concept_name,
+                                    concept_name,
                                     datediff(day, cohort_start_date, condition_era_start_date) as date_order
 
                     from #pts_cohort c
@@ -87,46 +85,21 @@ with conditions as (select distinct person_id,
                             and cc.concept_id not in (@doi) and cc.concept_id not in (@complications)
                            }
                            )
-select person_id, cohort_definition_id, cohort_start_date, concept_name
+select person_id, 
+       cohort_definition_id, 
+       cohort_start_date, 
+       concept_name, 
+       date_order
 into #comorbidities
 from conditions
 order by date_order asc
 ;
 
-with conditions as (select distinct person_id,
-                                    cohort_definition_id,
-                                    cohort_start_date,
-                                    concept_name,
-                                    datediff(day, cohort_start_date, condition_era_start_date) as date_order
-
-                    from #pts_cohort c
-                        join @cdm_database_schema.condition_era co
-                    on co.person_id = c.subject_id
-                        and datediff(day, cohort_start_date, condition_era_start_date)<0
-                        {@use_ancestor} ? 
-                        {join @cdm_database_schema.concept_ancestor ca on descendant_concept_id = condition_concept_id
-                         and ancestor_concept_id in (@comorbidities) and ancestor_concept_id not in (@symptoms)
-                         and ancestor_concept_id not in (@doi) and ancestor_concept_id not in (@complications)
-                         join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id}
-                        :{join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id and cc.concept_id!=0
-                           and cc.concept_id in (@comorbidities) and cc.concept_id not in (@symptoms)
-                            and cc.concept_id not in (@doi) and cc.concept_id not in (@complications)
-                           }
-                           )
-select person_id, cohort_definition_id, cohort_start_date, concept_name, date_order
-into #temp
-from conditions
-order by date_order asc
-;
-
-
 -- prior symptoms within a prior month [-30,0)
 with symptoms as (select distinct person_id,
                                        cohort_definition_id,
                                        cohort_start_date,
-                                       concat(concept_name, ' (day ',
-                                              datediff(day, cohort_start_date, condition_era_start_date),
-                                              ');')                                               as concept_name,
+                                       concept_name,
                                        datediff(day, cohort_start_date, condition_era_start_date) as date_order
                        from #pts_cohort c
                            join @cdm_database_schema.condition_era co
@@ -141,7 +114,11 @@ with symptoms as (select distinct person_id,
                            and cc.concept_id in (@symptoms) and cc.concept_id not in (@doi) and cc.concept_id not in (@complications)   
                            }
                            )
-select person_id, cohort_definition_id, cohort_start_date, concept_name
+select person_id, 
+       cohort_definition_id, 
+       cohort_start_date, 
+       concept_name, 
+       date_order
 into #symptoms
 from symptoms
 order by date_order asc
@@ -151,14 +128,13 @@ insert into #symptoms
 select person_id, 
        cohort_definition_id, 
        cohort_start_date,
-       concept_name
+       concept_name,
+       date_order
 from (
     select distinct                  person_id,
                                        cohort_definition_id,
                                        cohort_start_date,
-                                       concat(concept_name, ' (day ',
-                                              datediff(day, cohort_start_date, observation_date),
-                                              ');')                                               as concept_name,
+                                       concept_name,
                                        datediff(day, cohort_start_date, observation_date) as date_order
                        from #pts_cohort c
                            join @cdm_database_schema.observation co
@@ -179,9 +155,7 @@ order by date_order asc
 with prior_disease as (select distinct person_id,
                                        cohort_definition_id,
                                        cohort_start_date,
-                                       concat(concept_name, ' (day ',
-                                              datediff(day, cohort_start_date, condition_era_start_date),
-                                              ');')                                               as concept_name,
+                                       concept_name,
                                        datediff(day, cohort_start_date, condition_era_start_date) as date_order
                        from #pts_cohort c
                            join @cdm_database_schema.condition_era co
@@ -194,7 +168,11 @@ with prior_disease as (select distinct person_id,
                         :{join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id and cc.concept_id!=0
                            and (cc.concept_id in (@complications) or cc.concept_id in (@doi))}
                            )
-select person_id, cohort_definition_id, cohort_start_date, concept_name
+select person_id, 
+       cohort_definition_id, 
+       cohort_start_date, 
+       concept_name,
+       date_order
 into #prior_disease
 from prior_disease
 order by date_order asc
@@ -204,9 +182,7 @@ order by date_order asc
 with after_disease as (select distinct person_id,
                                        cohort_definition_id,
                                        cohort_start_date,
-                                       concat(concept_name, ' (day ',
-                                              datediff(day, cohort_start_date, condition_era_start_date),
-                                              ');')                                               as concept_name,
+                                       concept_name,
                                        datediff(day, cohort_start_date, condition_era_start_date) as date_order
                        from #pts_cohort c
                            join @cdm_database_schema.condition_era co
@@ -219,7 +195,11 @@ with after_disease as (select distinct person_id,
                         :{join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id and cc.concept_id!=0
                            and (cc.concept_id in (@complications) or cc.concept_id in (@doi))}
                            )
-select person_id, cohort_definition_id, cohort_start_date, concept_name
+select person_id, 
+       cohort_definition_id, 
+       cohort_start_date, 
+       concept_name,
+       date_order
 into #after_disease
 from after_disease
 order by date_order asc
@@ -276,8 +256,7 @@ order by date_order asc
 with treatment as (select distinct person_id,
                                    cohort_definition_id,
                                    cohort_start_date,
-                                   concat(concept_name, ' (day ', datediff(day, cohort_start_date, procedure_date),
-                                          ');')                                     as concept_name,
+                                   concept_name,
                                    datediff(day, cohort_start_date, procedure_date) as date_order
                    from #pts_cohort c
                        join @cdm_database_schema.procedure_occurrence po
@@ -290,7 +269,11 @@ with treatment as (select distinct person_id,
                         :{join @cdm_database_schema.concept cc on cc.concept_id = procedure_concept_id and cc.concept_id!=0
                            and cc.concept_id in (@treatment_procedures)}
                            )
-select person_id, cohort_definition_id, cohort_start_date, concept_name
+select person_id, 
+       cohort_definition_id, 
+       cohort_start_date, 
+       concept_name,
+       date_order
 into #prior_treatment_procedures
 from treatment
 order by date_order asc
@@ -300,8 +283,7 @@ order by date_order asc
 with treatment as (select distinct person_id,
                                    cohort_definition_id,
                                    cohort_start_date,
-                                   concat(concept_name, ' (day ', datediff(day, cohort_start_date, procedure_date),
-                                          ');')                                     as concept_name,
+                                   concept_name,
                                    datediff(day, cohort_start_date, procedure_date) as date_order
                    from #pts_cohort c
                        join @cdm_database_schema.procedure_occurrence po
@@ -314,7 +296,11 @@ with treatment as (select distinct person_id,
                         :{join @cdm_database_schema.concept cc on cc.concept_id = procedure_concept_id and cc.concept_id!=0
                            and cc.concept_id in (@treatment_procedures)}
                            )
-select person_id, cohort_definition_id, cohort_start_date, concept_name
+select person_id, 
+       cohort_definition_id, 
+       cohort_start_date, 
+       concept_name,
+       date_order
 into #after_treatment_procedures
 from treatment
 order by date_order asc
@@ -324,8 +310,7 @@ order by date_order asc
 with dx as (select distinct person_id,
                             cohort_definition_id,
                             cohort_start_date,
-                            concat(concept_name, ' (day ', datediff(day, cohort_start_date, condition_era_start_date),
-                                   ')')                                                as concept_name,
+                            concept_name,
                             datediff(day, cohort_start_date, condition_era_start_date) as date_order
             from #pts_cohort c
                 join @cdm_database_schema.condition_era co
@@ -344,7 +329,11 @@ with dx as (select distinct person_id,
                            and cc.concept_id not in (@comorbidities)
                            }
                            )
-select person_id, cohort_definition_id, cohort_start_date, concept_name
+select person_id, 
+       cohort_definition_id, 
+       cohort_start_date, 
+       concept_name,
+       date_order
 into #alternative_diagnosis
 from dx
 order by date_order asc
@@ -354,8 +343,7 @@ order by date_order asc
 with diagnostics as (select distinct person_id,
                                      cohort_definition_id,
                                      cohort_start_date,
-                                     concat(concept_name, ' (day ', datediff(day, cohort_start_date, procedure_date),
-                                            ');')                                     as concept_name,
+                                     concept_name,
                                      datediff(day, cohort_start_date, procedure_date) as date_order
                      from #pts_cohort c
                          left join @cdm_database_schema.procedure_occurrence po
@@ -369,7 +357,11 @@ with diagnostics as (select distinct person_id,
                         :{join @cdm_database_schema.concept cc on cc.concept_id = procedure_concept_id and cc.concept_id!=0
                            and cc.concept_id in (@diagnostic_procedures)}
                            )
-select person_id, cohort_definition_id, cohort_start_date, concept_name
+select person_id, 
+       cohort_definition_id, 
+       cohort_start_date, 
+       concept_name,
+       date_order
 into #diagnostic_procedures
 from diagnostics
 order by date_order asc
@@ -447,10 +439,11 @@ with meas as (
                         :{join @cdm_database_schema.concept cc on cc.concept_id = measurement_concept_id and cc.concept_id!=0
                            and cc.concept_id in (@measurements)}    
         and value_as_number is null and (value_as_concept_id is null or value_as_concept_id=0))
-select person_id,
+select person_id, 
+       cohort_definition_id, 
+       cohort_start_date, 
        concept_name,
-       cohort_definition_id,
-       cohort_start_date
+       date_order
 into #measurements
 from meas c
 order by date_order asc;
