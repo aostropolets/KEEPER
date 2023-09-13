@@ -198,22 +198,22 @@ createKEEPER <- function(connectionDetails = NULL,
     add = errorMessage
   )
 
-  if (is.null(personIds)) {
-    checkmate::assertIntegerish(
-      x = sampleSize,
-      lower = 0,
-      len = 1,
-      null.ok = TRUE,
-      add = errorMessage
-    )
-  } else {
-    checkmate::assertIntegerish(
-      x = personIds,
-      lower = 0,
-      min.len = 1,
-      null.ok = TRUE
-    )
-  }
+ # if (is.null(personIds)) {
+ #   checkmate::assertIntegerish(
+ #     x = sampleSize,
+ #     lower = 0,
+ #     len = 1,
+ #     null.ok = TRUE,
+ #     add = errorMessage
+ #   )
+ # } else {
+ #   checkmate::assertIntegerish(
+ #     x = personIds,
+ #     lower = 0,
+ #     min.len = 1,
+ #     null.ok = TRUE
+ #   )
+ # }
 
 # create export folder
 
