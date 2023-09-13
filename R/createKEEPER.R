@@ -337,22 +337,22 @@ createKEEPER <- function(connectionDetails = NULL,
                   INNER JOIN #persons_to_filter b
                   ON a.subject_id = b.subject_id;
 
-                  DROP TABLE IF EXISTS #person_id_data;
-                  SELECT DISTINCT subject_id
-                  INTO #person_id_data
-                  FROM #person_id_data2;
-
-                  DROP TABLE IF EXISTS #person_id_data2;
-                  ",
+                  DROP TABLE IF EXISTS #persons_filter;
+                  SELECT new_id, subject_id as person_id
+                  INTO #persons_filter
+                  FROM
+                  (
+                  SELECT ROW_NUMBER() OVER (ORDER BY NEWID()) AS new_id, subject_id
+                  FROM #person_id_data2
+                  ) f;",
       tempEmulationSchema = tempEmulationSchema
     )
-  }
-
+  } else {
   # assign new id and filter to sample size
   DatabaseConnector::renderTranslateExecuteSql(
     connection = connection,
     sql = "   DROP TABLE IF EXISTS #persons_filter;
-              SELECT new_id, subject_id person_id
+              SELECT new_id, subject_id as person_id
               INTO #persons_filter
               FROM
               (
@@ -367,6 +367,7 @@ createKEEPER <- function(connectionDetails = NULL,
     tempEmulationSchema = tempEmulationSchema,
     sample_size = sampleSize
   )
+  }
 
   if (cohortTableIsTemp) {
     writeLines("Getting cohort table.")
