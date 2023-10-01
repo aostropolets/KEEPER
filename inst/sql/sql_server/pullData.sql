@@ -306,7 +306,7 @@ from treatment
 order by date_order asc
 ;
 
--- alternative diagnosis within +-00 days [-90, 90].
+-- alternative diagnosis within +-90 days [-90, 90].
 with dx as (select distinct person_id,
                             cohort_definition_id,
                             cohort_start_date,

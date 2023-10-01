@@ -79,7 +79,7 @@
 #'   password = "secure"
 #' )
 #'
-#' XXX: to do: test for personIds, add windows as parameters, format as loop, check ranges for measurements, fix NA, fix length of CSV string, add support for cdi as list
+#' XXX: to do: add windows as parameters, check ranges for measurements, fix NA, fix length of CSV string, add support for cdi as list
 #' XXX: consider: adding a * for primary status
 #' createKEEPER(
 #'   connectionDetails = connectionDetails,
@@ -466,19 +466,20 @@ visit_context = visit_context%>%
   dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
   dplyr::summarise(visit_context = stringr::str_c(conceptName, collapse = " ")) 
 
+# loop for modifying tables 
 subset_name_list = c( 'comorbidities', 'symptoms', 'prior_disease', 'prior_drugs', 
 'prior_treatment_procedures', 'diagnostic_procedures', 'alternative_diagnosis',
 'after_disease', 'after_drugs', 'after_treatment_procedures')
 
 for (subset_name in subset_name_list) {
-  assign (subset_name, subset_name%>%
-  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate, conceptName) %>% 
-  dplyr::summarise(dateComb = toString(sort(unique(dateOrder))))%>%
-  dplyr::ungroup()%>%
-  dplyr::distinct()%>%
-  dplyr::mutate(dateName = paste(conceptName, " (day ", dateComb, ")", sep = ""))%>%
-  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
-  dplyr::summarise(subset_name = stringr::str_c(dateName, collapse = "; ")))
+  assign(subset_name, get(subset_name)%>%
+    dplyr::group_by(cohortDefinitionId, personId, cohortStartDate, conceptName) %>% 
+    dplyr::summarise(dateComb = toString(sort(unique(dateOrder))))%>%
+    dplyr::ungroup()%>%
+    dplyr::distinct()%>%
+    dplyr::mutate(dateName = paste(conceptName, " (day ", dateComb, ")", sep = ""))%>%
+    dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
+    dplyr::summarise(!!(subset_name) := stringr::str_c(dateName, collapse = "; ")))
 }
       
 measurements = measurements%>%
