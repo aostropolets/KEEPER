@@ -222,7 +222,11 @@ with drugs as (select distinct person_id,
                    join @cdm_database_schema.concept cc on cc.concept_id = drug_concept_id and cc.concept_id!=0
                where cc.concept_id in (@drugs)      
                )
-select person_id, cohort_definition_id, cohort_start_date, concept_name
+select person_id, 
+       cohort_definition_id, 
+       cohort_start_date, 
+       concept_name,
+       date_order
 into #prior_drugs
 from drugs
 order by date_order asc
@@ -246,7 +250,11 @@ with drugs as (select distinct person_id,
                    join @cdm_database_schema.concept cc on cc.concept_id = drug_concept_id and cc.concept_id!=0
                where cc.concept_id in (@drugs)
                )
-select person_id, cohort_definition_id, cohort_start_date, concept_name
+select person_id, 
+       cohort_definition_id, 
+       cohort_start_date, 
+       concept_name,
+       date_order
 into #after_drugs
 from drugs
 order by date_order asc
@@ -306,7 +314,7 @@ from treatment
 order by date_order asc
 ;
 
--- alternative diagnosis within +-00 days [-90, 90].
+-- alternative diagnosis within +-90 days [-90, 90].
 with dx as (select distinct person_id,
                             cohort_definition_id,
                             cohort_start_date,
@@ -366,8 +374,6 @@ into #diagnostic_procedures
 from diagnostics
 order by date_order asc
 ;
-
-
 
 -- measurements around day 0 [-30;+30].
 with meas as (

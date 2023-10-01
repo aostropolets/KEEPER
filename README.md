@@ -83,14 +83,14 @@ Output contains the following information per patient:
 - visit_context: information about visits overlapping with the index date (day 0) formatted as the type of visit and its duration
 - observation_period: information about overlapping OBSERVATION_PERIOD formatted as days prior - days after the index date
 - presentation: all records in CONDITION_OCCURRENCE on day 0 with corrresponding type and status
-- comorbidities: records in CONDITION_OCCURRENCE and OBSERVATION that were selected as co-comoribidites and risk factors within all time prior excluding day 0. The list does not inlcude symptoms, disease of interest and complications
-- symptoms: records in CONDITION_OCCURRENCE that were selected as symptoms 30 days prior excluding day 0. The list does not include disease of interest and complications
-- prior_disease: records in CONDITION_OCCURRENCE that were selected as disease of interest or complications all time prior excluding day 0
+- comorbidities: records in CONDITION_ERA and OBSERVATION that were selected as co-comoribidites and risk factors within all time prior excluding day 0. The list does not inlcude symptoms, disease of interest and complications
+- symptoms: records in CONDITION_ERA that were selected as symptoms 30 days prior excluding day 0. The list does not include disease of interest and complications
+- prior_disease: records in CONDITION_ERA that were selected as disease of interest or complications all time prior excluding day 0
 - prior_drugs: records in DRUG_ERA that were selected as drugs of interest all time prior excluding day 0 formatted as day of era start and length of drug era
 - prior_treatment_procedures: records in PROCEDURE_OCCURRENCE that were selected as treatments of interest within all time prior excluding day 0
 - diagnostic_procedures: records in PROCEDURE_OCCURRENCE that were selected as diagnostic procedures within all time prior excluding day 0
 - measurements: records in MEASUREMENT that were selected as measurements (lab tests) of interest within 30 days before and 30 days after day 0 formatted as value and unit (if exisits) and assessment compared to the reference range provided in MEASUREMENT table (normal, abnormal high and abnormal low)
-- alternative_diagnosis: records in CONDITION_OCCURRENCE that were selected as alternative (competing) diagnosis withi 90 days before and 90 days after day 0. The list does not inlcude disease of interest, complications or comorbidities
+- alternative_diagnosis: records in CONDITION_ERA that were selected as alternative (competing) diagnosis withi 90 days before and 90 days after day 0. The list does not inlcude disease of interest, complications or comorbidities
 - after_disease: same as prior_disease but after day 0
 - after_drugs: same as prior_drugs but after day 0 
 - after_treatment_procedures: same as prior_treatment_procedures but after day 0

@@ -79,7 +79,7 @@
 #'   password = "secure"
 #' )
 #'
-#' XXX: to do: test for personIds, add windows as parameters, format as loop, check ranges for measurements, fix NA, fix length of CSV string, add support for cdi as list
+#' XXX: to do: add windows as parameters, check ranges for measurements, fix NA, fix length of CSV string, add support for cdi as list
 #' XXX: consider: adding a * for primary status
 #' createKEEPER(
 #'   connectionDetails = connectionDetails,
@@ -441,193 +441,51 @@ pullDataSql <- SqlRender::readSql(system.file("sql/sql_server/pullData.sql", pac
     drugs = drugs
      ) 
 
-# XXX consider loop for future
-#list = c(presentation, visit_context, prior_conditions, prior_drugs, diagnostic_procedures, measurements, alternative_diagnosis, medication_treatment, treatment_procedures, death)
+# loop for instantiating tables in R
+table_name_list = c('presentation', 'visit_context', 'comorbidities', 'symptoms', 'prior_disease',
+'prior_drugs', 'prior_treatment_procedures', 'diagnostic_procedures', 'measurements','alternative_diagnosis',
+'after_disease', 'after_drugs', 'after_treatment_procedures', 'death')
 
-#for (val in list){
-##allfour <- lapply(setNames(paste("select * from", list),
-#                          list),
-#                  DBI::dbGetQuery, conn = con)}
+for (table_name in table_name_list) {
+  assign(table_name, 
+  DatabaseConnector::renderTranslateQuerySql(
+    connection = connection,
+    sql = paste("SELECT * FROM ", table_name, ";"),
+    snakeCaseToCamelCase = TRUE) %>% as_tibble())
+}
 
-
-# XXX adding cohort sets will require rewriting this code
-presentation = DatabaseConnector::renderTranslateQuerySql(
-      connection = connection,
-      sql = "SELECT * FROM #presentation;",
-      snakeCaseToCamelCase = TRUE) %>% as_tibble()
-
- subjects = presentation%>%
+subjects = presentation%>%
  dplyr::select(personId, newId, age, gender, cohortDefinitionId, cohortStartDate, observationPeriod)%>%
  dplyr::rename(observation_period = observationPeriod)
       
- presentation = presentation%>%
+presentation = presentation%>%
   dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
   dplyr::summarise(presentation = stringr::str_c(conceptName, collapse = " ")) 
 
-
-visit_context = DatabaseConnector::renderTranslateQuerySql(
-      connection = connection,
-      sql = "SELECT * FROM #visit_context;",
-      snakeCaseToCamelCase = TRUE) %>% as_tibble()
-      
 visit_context = visit_context%>%
   dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
   dplyr::summarise(visit_context = stringr::str_c(conceptName, collapse = " ")) 
 
-symptoms = DatabaseConnector::renderTranslateQuerySql(
-      connection = connection,
-      sql = "SELECT * FROM #symptoms;",
-      snakeCaseToCamelCase = TRUE) %>% as_tibble()
-      
-symptoms = symptoms%>%
-  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate, conceptName) %>% 
-  dplyr::summarise(dateComb = toString(sort(unique(dateOrder))))%>%
-  dplyr::ungroup()%>%
-  dplyr::distinct()%>%
-  dplyr::mutate(dateName = paste(conceptName, " (day ", dateComb, ")", sep = ""))%>%
-  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
-  dplyr::summarise(symptoms = stringr::str_c(dateName, collapse = "; ")) 
+# loop for modifying tables 
+subset_name_list = c( 'comorbidities', 'symptoms', 'prior_disease', 'prior_drugs', 
+'prior_treatment_procedures', 'diagnostic_procedures', 'alternative_diagnosis',
+'after_disease', 'after_drugs', 'after_treatment_procedures')
 
-
-comorbidities = DatabaseConnector::renderTranslateQuerySql(
-      connection = connection,
-      sql = "SELECT * FROM #comorbidities;",
-      snakeCaseToCamelCase = TRUE) %>% as_tibble()
-      
-comorbidities = comorbidities%>%
-  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate, conceptName) %>% 
-  dplyr::summarise(dateComb = toString(sort(unique(dateOrder))))%>%
-  dplyr::ungroup()%>%
-  dplyr::distinct()%>%
-  dplyr::mutate(dateName = paste(conceptName, " (day ", dateComb, ")", sep = ""))%>%
-  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
-  dplyr::summarise(comorbidities = stringr::str_c(dateName, collapse = "; ")) 
-
-
-prior_disease = DatabaseConnector::renderTranslateQuerySql(
-      connection = connection,
-      sql = "SELECT * FROM #prior_disease;",
-      snakeCaseToCamelCase = TRUE) %>% as_tibble()
-      
-prior_disease = prior_disease%>%
-    dplyr::group_by(cohortDefinitionId, personId, cohortStartDate, conceptName) %>%
+for (subset_name in subset_name_list) {
+  assign(subset_name, get(subset_name)%>%
+    dplyr::group_by(cohortDefinitionId, personId, cohortStartDate, conceptName) %>% 
     dplyr::summarise(dateComb = toString(sort(unique(dateOrder))))%>%
     dplyr::ungroup()%>%
     dplyr::distinct()%>%
     dplyr::mutate(dateName = paste(conceptName, " (day ", dateComb, ")", sep = ""))%>%
     dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
-    dplyr::summarise(prior_disease = stringr::str_c(dateName, collapse = "; ")) 
-
-
-after_disease = DatabaseConnector::renderTranslateQuerySql(
-      connection = connection,
-      sql = "SELECT * FROM #after_disease;",
-      snakeCaseToCamelCase = TRUE) %>% as_tibble()
-      
-after_disease = after_disease%>%
-    dplyr::group_by(cohortDefinitionId, personId, cohortStartDate, conceptName) %>%
-    dplyr::summarise(dateComb = toString(sort(unique(dateOrder))))%>%
-    dplyr::ungroup()%>%
-    dplyr::distinct()%>%
-    dplyr::mutate(dateName = paste(conceptName, " (day ", dateComb, ")", sep = ""))%>%
-    dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
-    dplyr::summarise(after_disease = stringr::str_c(dateName, collapse = "; ")) 
-
-
-prior_drugs = DatabaseConnector::renderTranslateQuerySql(
-      connection = connection,
-      sql = "SELECT * FROM #prior_drugs;",
-      snakeCaseToCamelCase = TRUE) %>% as_tibble()
-      
-prior_drugs = prior_drugs%>%
-  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
-  dplyr::summarise(prior_drugs = stringr::str_c(conceptName, collapse = " ")) 
-
-
-after_drugs = DatabaseConnector::renderTranslateQuerySql(
-      connection = connection,
-      sql = "SELECT * FROM #after_drugs;",
-      snakeCaseToCamelCase = TRUE) %>% as_tibble()
-      
-after_drugs = after_drugs%>%
-  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
-  dplyr::summarise(after_drugs = stringr::str_c(conceptName, collapse = " ")) 
-
-
-diagnostic_procedures = DatabaseConnector::renderTranslateQuerySql(
-      connection = connection,
-      sql = "SELECT * FROM #diagnostic_procedures;",
-      snakeCaseToCamelCase = TRUE) %>% as_tibble()
-      
-diagnostic_procedures = diagnostic_procedures%>%
-  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate, conceptName) %>% 
-  dplyr::summarise(dateComb = toString(sort(unique(dateOrder))))%>%
-  dplyr::ungroup()%>%
-  dplyr::distinct()%>%
-  dplyr::mutate(dateName = paste(conceptName, " (day ", dateComb, ")", sep = ""))%>%
-  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
-  dplyr::summarise(diagnostic_procedures = stringr::str_c(dateName, collapse = "; ")) 
-
-
-measurements = DatabaseConnector::renderTranslateQuerySql(
-      connection = connection,
-      sql = "SELECT * FROM #measurements;",
-      snakeCaseToCamelCase = TRUE) %>% as_tibble()
+    dplyr::summarise(!!(subset_name) := stringr::str_c(dateName, collapse = "; ")))
+}
       
 measurements = measurements%>%
   dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
   dplyr::summarise(measurements = stringr::str_c(conceptName, collapse = " ")) 
 
-
-alternative_diagnosis = DatabaseConnector::renderTranslateQuerySql(
-      connection = connection,
-      sql = "SELECT * FROM #alternative_diagnosis;",
-      snakeCaseToCamelCase = TRUE) %>% as_tibble()
-      
-alternative_diagnosis = alternative_diagnosis%>%
-    dplyr::group_by(cohortDefinitionId, personId, cohortStartDate, conceptName) %>%
-    dplyr::summarise(dateComb = toString(sort(unique(dateOrder))))%>%
-    dplyr::ungroup()%>%
-    dplyr::distinct()%>%
-    dplyr::mutate(dateName = paste(conceptName, " (day ", dateComb, ")", sep = ""))%>%
-    dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
-    dplyr::summarise(alternative_diagnosis = stringr::str_c(dateName, collapse = "; ")) 
-
-
-prior_treatment_procedures = DatabaseConnector::renderTranslateQuerySql(
-      connection = connection,
-      sql = "SELECT * FROM #prior_treatment_procedures;",
-      snakeCaseToCamelCase = TRUE) %>% as_tibble()
-      
-prior_treatment_procedures = prior_treatment_procedures%>%
-  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate, conceptName) %>% 
-  dplyr::summarise(dateComb = toString(sort(unique(dateOrder))))%>%
-  dplyr::ungroup()%>%
-  dplyr::distinct()%>%
-  dplyr::mutate(dateName = paste(conceptName, " (day ", dateComb, ")", sep = ""))%>%
-  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
-  dplyr::summarise(prior_treatment_procedures = stringr::str_c(dateName, collapse = "; ")) 
-
-
-after_treatment_procedures = DatabaseConnector::renderTranslateQuerySql(
-      connection = connection,
-      sql = "SELECT * FROM #after_treatment_procedures;",
-      snakeCaseToCamelCase = TRUE) %>% as_tibble()
-      
-after_treatment_procedures = after_treatment_procedures%>%
-  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate, conceptName) %>% 
-  dplyr::summarise(dateComb = toString(sort(unique(dateOrder))))%>%
-  dplyr::ungroup()%>%
-  dplyr::distinct()%>%
-  dplyr::mutate(dateName = paste(conceptName, " (day ", dateComb, ")", sep = ""))%>%
-  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
-  dplyr::summarise(after_treatment_procedures = stringr::str_c(dateName, collapse = "; ")) 
-
-death = DatabaseConnector::renderTranslateQuerySql(
-      connection = connection,
-      sql = "SELECT * FROM #death;",
-      snakeCaseToCamelCase = TRUE) %>% as_tibble()
-      
 death = death%>%
   dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
   dplyr::summarise(death = stringr::str_c(conceptName, collapse = " ")) 
