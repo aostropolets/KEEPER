@@ -303,7 +303,7 @@ createKEEPER <- function(connectionDetails = NULL,
       DatabaseConnector::renderTranslateExecuteSql(
         connection = connection,
         sql = " DROP TABLE IF EXISTS #person_id_data;
-                  SELECT DISTINCT subject_id
+                  SELECT DISTINCT subject_id, cohort_start_date
                   INTO #person_id_data
                   FROM @cohort_database_schema.@cohort_table
                   WHERE cohort_definition_id = @cohort_definition_id;",
@@ -508,7 +508,7 @@ death = death%>%
   dplyr::left_join(after_drugs, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
   dplyr::left_join(after_treatment_procedures, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
   dplyr::left_join(death, by = c("personId", "cohortStartDate", "cohortDefinitionId"))%>%
-  dplyr::select(personId, newId, age, gender, observation_period, visit_context, presentation, symptoms, prior_disease, prior_drugs, prior_treatment_procedures,
+  dplyr::select(personId, newId, age, gender, observation_period, visit_context, presentation, comorbidities, symptoms, prior_disease, prior_drugs, prior_treatment_procedures,
                 diagnostic_procedures, measurements, alternative_diagnosis, after_disease, after_treatment_procedures, after_drugs, death)%>%
   dplyr::distinct()
   # add columns for review
