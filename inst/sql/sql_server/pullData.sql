@@ -1,3 +1,40 @@
+-- creating concept sets 
+with conceptsets as (
+select concept_id as ancestor_concept_id, concept_id as descendant_concept_id, 'drugs' as category
+        from @cdm_database_schema.concept where concept_id in (@drugs)
+union
+select concept_id, concept_id, 'doi' from @cdm_database_schema.concept where concept_id in (@doi)
+union
+select concept_id, concept_id, 'comorbidities' from @cdm_database_schema.concept where concept_id in (@comorbidities)
+union
+select concept_id, concept_id, 'symptoms' from @cdm_database_schema.concept where concept_id in (@symptoms)
+union
+select concept_id, concept_id, 'diagnostic_procedures' from @cdm_database_schema.concept where concept_id in (@diagnostic_procedures)
+union
+select concept_id, concept_id, 'measurements' from @cdm_database_schema.concept where concept_id in (@measurements)
+union
+select concept_id, concept_id, 'alternative_diagnosis' from @cdm_database_schema.concept where concept_id in (@alternative_diagnosis)
+union
+select concept_id, concept_id, 'treatment_procedures' from @cdm_database_schema.concept where concept_id in (@treatment_procedures)
+union
+select concept_id, concept_id, 'complications' from @cdm_database_schema.concept where concept_id in (@complications)
+)
+select ancestor_concept_id, 
+       descendant_concept_id, 
+       category
+into #conceptsets
+from conceptsets
+;
+
+{@use_ancestor}?{
+insert into #conceptsets
+select distinct ca.ancestor_concept_id, 
+                ca.descendant_concept_id, 
+                category
+from @cdm_database_schema.concept_ancestor ca
+join #conceptsets s on ca.ancestor_concept_id = s.ancestor_concept_id;
+}
+
 -- presentation: everything on day 0
 with presentation as (select distinct p.person_id, c.new_id, 
                                       case
@@ -75,15 +112,11 @@ with conditions as (select distinct person_id,
                     on co.person_id = c.subject_id
                         and datediff(day, cohort_start_date, condition_era_start_date)<0
                         --and datediff(day, condition_era_start_date, cohort_start_date)<=365
-                        {@use_ancestor}? 
-                        {join @cdm_database_schema.concept_ancestor ca on descendant_concept_id = condition_concept_id
-                         and ancestor_concept_id in (@comorbidities) and ancestor_concept_id not in (@symptoms)
-                         and ancestor_concept_id not in (@doi) and ancestor_concept_id not in (@complications)
-                         join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id}
-                        :{join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id and cc.concept_id!=0
-                           and cc.concept_id in (@comorbidities) and cc.concept_id not in (@symptoms)
-                            and cc.concept_id not in (@doi) and cc.concept_id not in (@complications)
-                           }
+                         join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id
+                         join #conceptsets ss on ss.descendant_concept_id = cc.concept_id and ss.category = 'comorbidities'
+                         where cc.concept_id not in (select descendant_concept_id 
+                                                     from #conceptsets
+                                                     where category in ('symptoms', 'doi', 'complications'))
                            )
 select person_id, 
        cohort_definition_id, 
@@ -92,6 +125,31 @@ select person_id,
        date_order
 into #comorbidities
 from conditions
+order by date_order asc
+;
+
+insert into #comorbidities
+select person_id, 
+       cohort_definition_id, 
+       cohort_start_date,
+       concept_name,
+       date_order
+from (
+    select distinct                  person_id,
+                                       cohort_definition_id,
+                                       cohort_start_date,
+                                       concept_name,
+                                       datediff(day, cohort_start_date, observation_date) as date_order
+                       from #pts_cohort c
+                           join @cdm_database_schema.observation co
+                       on co.person_id = c.subject_id
+                           and datediff(day, cohort_start_date, observation_date)<0
+                         join @cdm_database_schema.concept cc on cc.concept_id = observation_concept_id
+                         join #conceptsets ss on ss.descendant_concept_id = cc.concept_id and ss.category = 'comorbidities'
+                                                  where cc.concept_id not in (select descendant_concept_id 
+                                                                              from #conceptsets
+                                                                              where category in ('symptoms', 'doi', 'complications'))
+        ) a 
 order by date_order asc
 ;
 
@@ -106,13 +164,10 @@ with symptoms as (select distinct person_id,
                        on co.person_id = c.subject_id
                            and datediff(day, cohort_start_date, condition_era_start_date)<0
                            and datediff(day, condition_era_start_date, cohort_start_date)<=30
-                        {@use_ancestor} ? 
-                        {join @cdm_database_schema.concept_ancestor ca on descendant_concept_id = condition_concept_id
-                         and ancestor_concept_id in (@symptoms) and ancestor_concept_id not in (@doi) and ancestor_concept_id not in (@complications)
-                         join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id}
-                        :{join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id and cc.concept_id!=0
-                           and cc.concept_id in (@symptoms) and cc.concept_id not in (@doi) and cc.concept_id not in (@complications)   
-                           }
+                         join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id
+                         join #conceptsets ss on ss.descendant_concept_id = cc.concept_id and ss.category = 'symptoms'
+                         where cc.concept_id not in (select descendant_concept_id from #conceptsets
+                                                    where category in ('doi', 'complications'))
                            )
 select person_id, 
        cohort_definition_id, 
@@ -141,12 +196,8 @@ from (
                        on co.person_id = c.subject_id
                            and datediff(day, cohort_start_date, observation_date)<0
                            and datediff(day, observation_date, cohort_start_date)<=30
-                        {@use_ancestor} ? 
-                        {join @cdm_database_schema.concept_ancestor ca on descendant_concept_id = observation_concept_id
-                         and ancestor_concept_id in (@symptoms) 
-                         join @cdm_database_schema.concept cc on cc.concept_id = observation_concept_id}
-                        :{join @cdm_database_schema.concept cc on cc.concept_id = observation_concept_id and cc.concept_id!=0
-                           and cc.concept_id in (@symptoms)}
+                         join @cdm_database_schema.concept cc on cc.concept_id = observation_concept_id
+                         join #conceptsets ss on ss.descendant_concept_id = cc.concept_id and ss.category = 'symptoms'
         ) a 
 order by date_order asc
 ;
@@ -161,12 +212,8 @@ with prior_disease as (select distinct person_id,
                            join @cdm_database_schema.condition_era co
                        on co.person_id = c.subject_id
                            and datediff(day, cohort_start_date, condition_era_start_date)<0
-                        {@use_ancestor}? 
-                        {join @cdm_database_schema.concept_ancestor ca on descendant_concept_id = condition_concept_id
-                         and (ancestor_concept_id in (@complications) or ancestor_concept_id in (@doi))
-                         join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id}
-                        :{join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id and cc.concept_id!=0
-                           and (cc.concept_id in (@complications) or cc.concept_id in (@doi))}
+                           join @cdm_database_schema.concept cc on concept_id = condition_concept_id
+                         join #conceptsets ss on ss.descendant_concept_id = cc.concept_id and ss.category in  ('complications','doi')
                            )
 select person_id, 
        cohort_definition_id, 
@@ -188,12 +235,8 @@ with after_disease as (select distinct person_id,
                            join @cdm_database_schema.condition_era co
                        on co.person_id = c.subject_id
                            and datediff(day, condition_era_start_date, cohort_start_date)<0
-                        {@use_ancestor}? 
-                        {join @cdm_database_schema.concept_ancestor ca on descendant_concept_id = condition_concept_id
-                         and (ancestor_concept_id in (@complications) or ancestor_concept_id in (@doi))
-                         join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id}
-                        :{join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id and cc.concept_id!=0
-                           and (cc.concept_id in (@complications) or cc.concept_id in (@doi))}
+                         join @cdm_database_schema.concept cc on concept_id = condition_concept_id
+                         join #conceptsets ss on ss.descendant_concept_id = cc.concept_id and ss.category in ('complications','doi')
                            )
 select person_id, 
        cohort_definition_id, 
@@ -270,12 +313,8 @@ with treatment as (select distinct person_id,
                        join @cdm_database_schema.procedure_occurrence po
                    on po.person_id = subject_id
                        and datediff(day, cohort_start_date, procedure_date)<0
-                        {@use_ancestor}? 
-                        {join @cdm_database_schema.concept_ancestor ca on descendant_concept_id = procedure_concept_id
-                         and ancestor_concept_id in (@treatment_procedures)
-                         join @cdm_database_schema.concept cc on cc.concept_id = procedure_concept_id}
-                        :{join @cdm_database_schema.concept cc on cc.concept_id = procedure_concept_id and cc.concept_id!=0
-                           and cc.concept_id in (@treatment_procedures)}
+                         join @cdm_database_schema.concept cc on cc.concept_id = procedure_concept_id
+                         join #conceptsets ss on ss.descendant_concept_id = cc.concept_id and category = 'treatment_procedures'
                            )
 select person_id, 
        cohort_definition_id, 
@@ -297,12 +336,8 @@ with treatment as (select distinct person_id,
                        join @cdm_database_schema.procedure_occurrence po
                    on po.person_id = subject_id
                        and datediff(day, procedure_date, cohort_start_date)<=0
-                        {@use_ancestor}? 
-                        {join @cdm_database_schema.concept_ancestor ca on descendant_concept_id = procedure_concept_id
-                         and ancestor_concept_id in (@treatment_procedures)
-                         join @cdm_database_schema.concept cc on cc.concept_id = procedure_concept_id}
-                        :{join @cdm_database_schema.concept cc on cc.concept_id = procedure_concept_id and cc.concept_id!=0
-                           and cc.concept_id in (@treatment_procedures)}
+                         join @cdm_database_schema.concept cc on cc.concept_id = procedure_concept_id
+                         join #conceptsets ss on ss.descendant_concept_id = cc.concept_id and category = 'treatment_procedures'
                            )
 select person_id, 
        cohort_definition_id, 
@@ -325,15 +360,9 @@ with dx as (select distinct person_id,
             on co.person_id = c.subject_id
                 and datediff(day, cohort_start_date, condition_era_start_date)<=90
                 and datediff(day, condition_era_start_date, cohort_start_date)<=90
-                        {@use_ancestor}? 
-                        {join @cdm_database_schema.concept_ancestor ca on descendant_concept_id = condition_concept_id
-                         and ancestor_concept_id in (@alternative_diagnosis) 
-                         and ancestor_concept_id not in (@doi) 
-                         join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id}
-                        :{join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id and cc.concept_id!=0
-                           and cc.concept_id in (@alternative_diagnosis) 
-                           and cc.concept_id not in (@doi)
-                           }
+                         join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id
+                         join #conceptsets ss on ss.descendant_concept_id = cc.concept_id and category = 'alternative_diagnosis'
+                         where cc.concept_id not in (select ss.descendant_concept_id from #conceptsets where category='doi')
                            )
 select person_id, 
        cohort_definition_id, 
@@ -356,12 +385,8 @@ with diagnostics as (select distinct person_id,
                      on po.person_id = subject_id
                          and datediff(day, cohort_start_date, procedure_date)<=30
                          and datediff(day, procedure_date, cohort_start_date)<=30
-                        {@use_ancestor}? 
-                        {join @cdm_database_schema.concept_ancestor ca on descendant_concept_id = procedure_concept_id
-                         and ancestor_concept_id in (@diagnostic_procedures)
-                         join @cdm_database_schema.concept cc on cc.concept_id = procedure_concept_id}
-                        :{join @cdm_database_schema.concept cc on cc.concept_id = procedure_concept_id and cc.concept_id!=0
-                           and cc.concept_id in (@diagnostic_procedures)}
+                         join @cdm_database_schema.concept cc on cc.concept_id = procedure_concept_id
+                         join #conceptsets ss on ss.descendant_concept_id = cc.concept_id and category = 'diagnostic_procedures'
                            )
 select person_id, 
        cohort_definition_id, 
@@ -392,12 +417,8 @@ with meas as (
     on m.person_id = subject_id
         and datediff(day, cohort_start_date, measurement_date)<=30
         and datediff(day, measurement_date, cohort_start_date)<=30
-                        {@use_ancestor}? 
-                        {join @cdm_database_schema.concept_ancestor ca on descendant_concept_id = measurement_concept_id
-                         and ancestor_concept_id in (@measurements)
-                         join @cdm_database_schema.concept cc on cc.concept_id = measurement_concept_id}
-                        :{join @cdm_database_schema.concept cc on cc.concept_id = measurement_concept_id and cc.concept_id!=0
-                           and cc.concept_id in (@measurements)}        
+                         join @cdm_database_schema.concept cc on cc.concept_id = measurement_concept_id
+                         join #conceptsets ss on ss.descendant_concept_id = cc.concept_id and category = 'measurements'    
         left join @cdm_database_schema.concept cc2 on cc2.concept_id = unit_concept_id and cc2.concept_id!=0
     where value_as_number is not null
 
@@ -414,12 +435,8 @@ with meas as (
     on m.person_id = subject_id
         and datediff(day, cohort_start_date, measurement_date)<=30
         and datediff(day, measurement_date, cohort_start_date)<=30
-                        {@use_ancestor}? 
-                        {join @cdm_database_schema.concept_ancestor ca on descendant_concept_id = measurement_concept_id
-                         and ancestor_concept_id in (@measurements)
-                         join @cdm_database_schema.concept cc on cc.concept_id = measurement_concept_id}
-                        :{join @cdm_database_schema.concept cc on cc.concept_id = measurement_concept_id and cc.concept_id!=0
-                           and cc.concept_id in (@measurements)}    
+                         join @cdm_database_schema.concept cc on cc.concept_id = measurement_concept_id
+                         join #conceptsets ss on ss.descendant_concept_id = cc.concept_id and category = 'measurements'   
         and value_as_concept_id is not null and value_as_concept_id!=0
         join @cdm_database_schema.concept cc2 on cc2.concept_id = value_as_concept_id
 
@@ -436,13 +453,10 @@ with meas as (
     on m.person_id = subject_id
         and datediff(day, cohort_start_date, measurement_date)<=30
         and datediff(day, measurement_date, cohort_start_date)<=30
-                        {@use_ancestor}? 
-                        {join @cdm_database_schema.concept_ancestor ca on descendant_concept_id = measurement_concept_id
-                         and ancestor_concept_id in (@measurements)
-                         join @cdm_database_schema.concept cc on cc.concept_id = measurement_concept_id}
-                        :{join @cdm_database_schema.concept cc on cc.concept_id = measurement_concept_id and cc.concept_id!=0
-                           and cc.concept_id in (@measurements)}    
-        and value_as_number is null and (value_as_concept_id is null or value_as_concept_id=0))
+                         join @cdm_database_schema.concept cc on cc.concept_id = measurement_concept_id
+                         join #conceptsets ss on ss.descendant_concept_id = cc.concept_id and category = 'measurements'   
+        and value_as_number is null and (value_as_concept_id is null or value_as_concept_id=0)
+        )
 select person_id, 
        cohort_definition_id, 
        cohort_start_date, 
