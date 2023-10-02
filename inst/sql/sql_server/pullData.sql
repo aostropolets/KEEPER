@@ -332,9 +332,8 @@ with dx as (select distinct person_id,
                          and ancestor_concept_id not in (@comorbidities)
                          join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id}
                         :{join @cdm_database_schema.concept cc on cc.concept_id = condition_concept_id and cc.concept_id!=0
-                           and cc.concept_id in (@alternative_diagnosis) and cc.concept_id not in (@symptoms)
-                           and cc.concept_id not in (@doi) and cc.concept_id not in (@complications) 
-                           and cc.concept_id not in (@comorbidities)
+                           and cc.concept_id in (@alternative_diagnosis) 
+                           and cc.concept_id not in (@doi)
                            }
                            )
 select person_id, 

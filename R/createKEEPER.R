@@ -450,7 +450,7 @@ for (table_name in table_name_list) {
   assign(table_name, 
   DatabaseConnector::renderTranslateQuerySql(
     connection = connection,
-    sql = paste("SELECT * FROM ", table_name, ";"),
+    sql = paste("SELECT * FROM #", table_name, ";", sep = ""),
     snakeCaseToCamelCase = TRUE) %>% as_tibble())
 }
 
