@@ -467,9 +467,9 @@ visit_context = visit_context%>%
   dplyr::summarise(visit_context = stringr::str_c(conceptName, collapse = " ")) 
 
 # loop for modifying tables 
-subset_name_list = c( 'comorbidities', 'symptoms', 'prior_disease', 'prior_drugs', 
+subset_name_list = c( 'comorbidities', 'symptoms', 'prior_disease', 
 'prior_treatment_procedures', 'diagnostic_procedures', 'alternative_diagnosis',
-'after_disease', 'after_drugs', 'after_treatment_procedures')
+'after_disease',  'after_treatment_procedures')
 
 for (subset_name in subset_name_list) {
   assign(subset_name, get(subset_name)%>%
@@ -481,14 +481,15 @@ for (subset_name in subset_name_list) {
     dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
     dplyr::summarise(!!(subset_name) := stringr::str_c(dateName, collapse = "; ")))
 }
-      
-measurements = measurements%>%
-  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
-  dplyr::summarise(measurements = stringr::str_c(conceptName, collapse = " ")) 
 
-death = death%>%
-  dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
-  dplyr::summarise(death = stringr::str_c(conceptName, collapse = " ")) 
+# no aggregation of dates
+subset_name_list2 = c('prior_drugs', 'after_drugs', 'measurements', 'death')
+
+for (subset_name in subset_name_list2) {
+  assign(subset_name, get(subset_name)%>%
+    dplyr::group_by(cohortDefinitionId, personId, cohortStartDate) %>% 
+    dplyr::summarise(!!(subset_name) := stringr::str_c(conceptName, collapse = " ")))
+}
 
 
 # creating a joint dataframe
