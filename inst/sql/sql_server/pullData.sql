@@ -263,7 +263,7 @@ with drugs as (select distinct person_id,
                    and datediff(day, cohort_start_date, drug_era_start_date)<0
                    --and datediff(day, drug_era_start_date, cohort_start_date)<=365
                    join @cdm_database_schema.concept cc on cc.concept_id = drug_concept_id and cc.concept_id!=0
-               where cc.concept_id in (@drugs)      
+                   join #conceptsets ss on ss.descendant_concept_id = cc.concept_id and category = 'drugs'  
                )
 select person_id, 
        cohort_definition_id, 
@@ -291,7 +291,7 @@ with drugs as (select distinct person_id,
                    and datediff(day, cohort_start_date, drug_era_start_date)>=0
                    --and datediff(day, drug_era_start_date, cohort_start_date)<=365
                    join @cdm_database_schema.concept cc on cc.concept_id = drug_concept_id and cc.concept_id!=0
-               where cc.concept_id in (@drugs)
+                   join #conceptsets ss on ss.descendant_concept_id = cc.concept_id and category = 'drugs'  
                )
 select person_id, 
        cohort_definition_id, 
@@ -420,7 +420,7 @@ with meas as (
                          join @cdm_database_schema.concept cc on cc.concept_id = measurement_concept_id
                          join #conceptsets ss on ss.descendant_concept_id = cc.concept_id and category = 'measurements'    
         left join @cdm_database_schema.concept cc2 on cc2.concept_id = unit_concept_id and cc2.concept_id!=0
-    where value_as_number is not null
+        where value_as_number is not null
 
     union
 
@@ -437,8 +437,8 @@ with meas as (
         and datediff(day, measurement_date, cohort_start_date)<=30
                          join @cdm_database_schema.concept cc on cc.concept_id = measurement_concept_id
                          join #conceptsets ss on ss.descendant_concept_id = cc.concept_id and category = 'measurements'   
-        and value_as_concept_id is not null and value_as_concept_id!=0
         join @cdm_database_schema.concept cc2 on cc2.concept_id = value_as_concept_id
+        and value_as_concept_id is not null and value_as_concept_id!=0
 
     union
 
